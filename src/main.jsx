@@ -11,3 +11,11 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     </BrowserRouter>
   </React.StrictMode>,
 )
+
+// Auto-expand Telegram Web App
+if (window.Telegram?.WebApp) {
+  window.Telegram.WebApp.ready();
+  window.Telegram.WebApp.expand();
+  // Enable closing confirmation to prevent accidental swipes
+  window.Telegram.WebApp.enableClosingConfirmation();
+}
