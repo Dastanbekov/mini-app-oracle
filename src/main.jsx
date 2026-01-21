@@ -14,8 +14,14 @@ ReactDOM.createRoot(document.getElementById('root')).render(
 
 // Auto-expand Telegram Web App
 if (window.Telegram?.WebApp) {
-  window.Telegram.WebApp.ready();
-  window.Telegram.WebApp.expand();
+  const tg = window.Telegram.WebApp;
+  tg.ready();
+  tg.expand();
+
+  // Native App Look
+  tg.setHeaderColor('#050505'); // Match --color-background
+  tg.setBackgroundColor('#050505');
+
   // Enable closing confirmation to prevent accidental swipes
-  window.Telegram.WebApp.enableClosingConfirmation();
+  tg.enableClosingConfirmation();
 }
