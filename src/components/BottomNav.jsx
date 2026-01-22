@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Gamepad2, MoonStar, Calculator, UserSearch, Grid } from 'lucide-react';
+import { Gamepad2, MoonStar, Grid, UserSearch } from 'lucide-react';
 import { clsx } from 'clsx';
 import { motion } from 'framer-motion';
 
@@ -9,9 +9,8 @@ export default function BottomNav() {
     const navItems = [
         { name: "Игра", path: "/", icon: Gamepad2 },
         { name: "Астро", path: "/astrology", icon: MoonStar },
-        { name: "Числа", path: "/numerology", icon: Calculator },
+        { name: "Матрица", path: "/numerology", icon: Grid },
         { name: "Дизайн", path: "/human-design", icon: UserSearch },
-        { name: "Матрица", path: "/matrix", icon: Grid },
     ];
 
     return (

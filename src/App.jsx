@@ -4,7 +4,6 @@ import Game from './pages/Game';
 import Astrology from './pages/Astrology';
 import Numerology from './pages/Numerology';
 import HumanDesign from './pages/HumanDesign';
-import MatrixOfDestiny from './pages/MatrixOfDestiny';
 
 function App() {
   return (
@@ -14,7 +13,6 @@ function App() {
         <Route path="astrology" element={<Astrology />} />
         <Route path="numerology" element={<Numerology />} />
         <Route path="human-design" element={<HumanDesign />} />
-        <Route path="matrix" element={<MatrixOfDestiny />} />
       </Route>
     </Routes>
   );
