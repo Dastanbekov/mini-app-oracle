@@ -56,8 +56,8 @@ export default function Numerology() {
                         key={tab.id}
                         onClick={() => { setActiveTab(tab.id); setResult(null); }}
                         className={`flex-1 min-w-[80px] flex flex-col items-center gap-1 py-3 px-2 rounded-lg transition-all text-[10px] font-medium ${activeTab === tab.id
-                                ? 'bg-accent/10 text-accent ring-1 ring-accent/30'
-                                : 'text-gray-500 hover:text-gray-300'
+                            ? 'bg-accent/10 text-accent ring-1 ring-accent/30'
+                            : 'text-gray-500 hover:text-gray-300'
                             }`}
                     >
                         <tab.icon size={18} />
@@ -142,7 +142,10 @@ export default function Numerology() {
                         {/* Result Mockup - Adapts visually to tab */}
                         <div className="glass-card p-6 rounded-2xl border border-accent/20 text-center relative overflow-hidden">
                             <div className="absolute top-0 right-0 p-4 opacity-10">
-                                {tabs.find(t => t.id === activeTab).icon({ size: 100 })}
+                                {(() => {
+                                    const Icon = tabs.find(t => t.id === activeTab).icon;
+                                    return <Icon size={100} />;
+                                })()}
                             </div>
 
                             <div className="relative z-10">
