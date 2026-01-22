@@ -2,6 +2,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useGameStore } from '../store/gameStore';
 import { useState } from 'react';
 import { Zap, Coins } from 'lucide-react';
+import TaroCoin from '../assets/taro_coin.png';
 
 export default function Game() {
     const { balance, energy, maxEnergy, increment } = useGameStore();
@@ -90,8 +91,12 @@ export default function Game() {
                     <div className="absolute inset-[30px] rounded-full border border-white/5 animate-[spin_10s_linear_infinite]" />
 
                     {/* Icon/Image */}
-                    <div className="text-8xl filter drop-shadow-[0_0_15px_rgba(255,255,255,0.5)] z-10 animate-float">
-                        🔮
+                    <div className="z-10 animate-float p-4">
+                        <img
+                            src={TaroCoin}
+                            alt="Taro Coin"
+                            className="w-full h-full object-contain filter drop-shadow-[0_0_15px_rgba(251,191,36,0.5)]"
+                        />
                     </div>
 
                     {/* Click ripple effect logic could be added here */}
