@@ -1,6 +1,8 @@
 import { Routes, Route } from 'react-router-dom';
 import Layout from './components/Layout';
-import Game from './pages/Game';
+import Rituals from './pages/Rituals';
+import Collection from './pages/Collection';
+import KnowledgeBase from './pages/KnowledgeBase';
 import Astrology from './pages/Astrology';
 import Numerology from './pages/Numerology';
 import HumanDesign from './pages/HumanDesign';
@@ -9,7 +11,9 @@ function App() {
   return (
     <Routes>
       <Route path="/" element={<Layout />}>
-        <Route index element={<Game />} />
+        <Route index element={<Rituals />} />
+        <Route path="collection" element={<Collection />} />
+        <Route path="knowledge" element={<KnowledgeBase />} />
         <Route path="astrology" element={<Astrology />} />
         <Route path="numerology" element={<Numerology />} />
         <Route path="human-design" element={<HumanDesign />} />
