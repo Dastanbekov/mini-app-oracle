@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useGameStore } from '../../store/gameStore';
 import { Sparkles, Star } from 'lucide-react';
+import CupImage from '../../assets/cup.png';
 
 // Using SVG paths for a more "Mystical Cup" look instead of simple div
 const CupIcon = ({ className }) => (
@@ -82,15 +83,19 @@ export default function GameCups() {
                             {/* Mystical Glow */}
                             <div className="absolute inset-0 bg-amber-500/0 group-hover:bg-amber-500/20 blur-xl rounded-full transition-all duration-500" />
 
-                            {/* Cup */}
                             <motion.div
                                 animate={gameState === 'picking' ? {
                                     y: [0, -5, 0],
                                     rotate: [0, 2, -2, 0]
                                 } : {}}
                                 transition={{ repeat: Infinity, duration: 2 }}
+                                className="w-24 h-24 flex items-center justify-center"
                             >
-                                <CupIcon className="w-20 h-20 text-amber-300 drop-shadow-[0_0_15px_rgba(251,191,36,0.5)]" />
+                                <img
+                                    src={CupImage}
+                                    alt="Mystical Cup"
+                                    className="w-full h-full object-contain filter drop-shadow-[0_0_15px_rgba(251,191,36,0.6)]"
+                                />
                             </motion.div>
 
                             {/* Result Reveal */}
