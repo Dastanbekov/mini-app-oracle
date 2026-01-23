@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useGameStore } from '../../store/gameStore';
 import { Eye, X, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import TarotCard from './TarotCard';
 
 export default function GameFog() {
     const { playFog, balanceDust } = useGameStore();
@@ -128,35 +129,21 @@ export default function GameFog() {
                             )}
                         </motion.div>
                     ) : (
-                        <motion.div
-                            key="card"
-                            initial={{ rotateY: 90, opacity: 0 }}
-                            animate={{ rotateY: 0, opacity: 1 }}
-                            transition={{ type: "spring", damping: 12 }}
-                            className="w-full h-full"
-                        >
-                            <div className="w-full h-full relative group">
-                                <div className="absolute inset-0 bg-gradient-to-b from-white/10 to-black/60 rounded-xl pointer-events-none" />
-                                <img src={card.image} alt={card.name} className="w-full h-full object-cover rounded-xl border border-white/20 shadow-2xl" />
+                        <div className="flex items-center justify-center w-full h-full relative">
+                            <TarotCard
+                                cardData={card}
+                                flipped={true}
+                                onFlip={() => { }}
+                                className="scale-90 sm:scale-100"
+                            />
 
-                                <div className="absolute bottom-0 inset-x-0 p-4 bg-gradient-to-t from-black via-black/80 to-transparent rounded-b-xl">
-                                    <div className="flex items-center justify-between mb-1">
-                                        <h3 className="text-xl font-bold text-white font-display">{card.name}</h3>
-                                        {card.rarity === 'gold' && <Sparkles className="text-yellow-400 fill-yellow-400" size={20} />}
-                                    </div>
-                                    <span className={`text-[10px] uppercase tracking-widest px-2 py-0.5 rounded-full ${card.rarity === 'gold' ? 'bg-yellow-500/20 text-yellow-300' : 'bg-blue-500/20 text-blue-300'}`}>
-                                        {card.rarity}
-                                    </span>
-                                </div>
-
-                                <button
-                                    onClick={() => { setCard(null); setRevealed(false); }}
-                                    className="absolute top-2 right-2 w-8 h-8 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center text-white/70 hover:bg-black/60 hover:text-white transition-all shadow-lg"
-                                >
-                                    <X size={16} />
-                                </button>
-                            </div>
-                        </motion.div>
+                            <button
+                                onClick={() => { setCard(null); setRevealed(false); }}
+                                className="absolute top-0 right-0 z-50 w-8 h-8 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center text-white/70 hover:bg-black/60 hover:text-white transition-all shadow-lg"
+                            >
+                                <X size={16} />
+                            </button>
+                        </div>
                     )}
                 </AnimatePresence>
             </div>

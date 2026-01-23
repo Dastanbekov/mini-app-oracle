@@ -2,7 +2,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useGameStore } from '../store/gameStore';
 import { useState } from 'react';
 import { Zap, Coins } from 'lucide-react';
-import TaroCoin from '../assets/taro_coin.png';
+import CupImage from '../assets/cup.png';
 
 export default function Game() {
     const { balance, energy, maxEnergy, increment } = useGameStore();
@@ -86,16 +86,16 @@ export default function Game() {
                     disabled={energy <= 0}
                     className="relative w-64 h-64 rounded-full glass border-2 border-primary/30 shadow-[0_0_30px_rgba(217,70,239,0.2)] flex items-center justify-center overflow-hidden group disabled:opacity-50 disabled:grayscale transition-all"
                 >
-                    {/* Inner Ring */}
+    // Inner Ring
                     <div className="absolute inset-2 rounded-full border border-white/10 group-active:scale-95 transition-transform duration-100" />
                     <div className="absolute inset-[30px] rounded-full border border-white/5 animate-[spin_10s_linear_infinite]" />
 
                     {/* Icon/Image */}
-                    <div className="z-10 animate-float p-4">
+                    <div className="z-10 animate-float p-6">
                         <img
-                            src={TaroCoin}
-                            alt="Taro Coin"
-                            className="w-full h-full object-contain filter drop-shadow-[0_0_15px_rgba(251,191,36,0.5)]"
+                            src={CupImage}
+                            alt="Mystical Cup"
+                            className="w-full h-full object-contain filter drop-shadow-[0_0_20px_rgba(217,70,239,0.6)]"
                         />
                     </div>
 
