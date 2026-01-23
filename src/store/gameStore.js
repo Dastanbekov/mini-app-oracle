@@ -20,10 +20,9 @@ export const useGameStore = create((set, get) => ({
 
     syncUser: async () => {
         try {
-            const res = await fetch(`${API_URL}/energy/check`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ user_id: get().userId })
+            const res = await fetch(`${API_URL}/energy/check?user_id=${get().userId}`, {
+                method: 'GET',
+                headers: { 'Content-Type': 'application/json' }
             });
             const data = await res.json();
             if (data.energy !== undefined) {
