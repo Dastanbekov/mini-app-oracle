@@ -1,16 +1,17 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { MoonStar, Grid, UserSearch, ArrowRight, Lock, Loader2, CheckCircle } from 'lucide-react';
+import { MoonStar, Grid, UserSearch, ArrowRight, Lock, Loader2, CheckCircle, ExternalLink } from 'lucide-react';
 import { useGameStore } from '../store/gameStore';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8080/api";
-
 export default function KnowledgeBase() {
-    const { userId } = useGameStore();
+    const { userId, createPayment, openPaymentUrl, checkPaymentStatus, paymentLoading } = useGameStore();
     const [showPayment, setShowPayment] = useState(false);
     const [processing, setProcessing] = useState(false);
     const [success, setSuccess] = useState(false);
+    const [paymentId, setPaymentId] = useState(null);
+    const [paymentUrl, setPaymentUrl] = useState(null);
+    const [error, setError] = useState(null);
 
     const items = [
         { name: "Астрология", path: "/astrology", icon: MoonStar, color: "text-purple-400", bg: "bg-purple-500/10" },
@@ -20,29 +21,73 @@ export default function KnowledgeBase() {
 
     const handlePayment = async () => {
         setProcessing(true);
+        setError(null);
+
         try {
-            // Fake delay
-            await new Promise(r => setTimeout(r, 2000));
+            const result = await createPayment('matrix_reading');
 
-            const res = await fetch(`${API_URL}/payment/mock`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ user_id: userId })
-            });
-            const data = await res.json();
-
-            if (data.success) {
-                setSuccess(true);
-                // Haptic
-                if (window.Telegram?.WebApp?.HapticFeedback) {
-                    window.Telegram.WebApp.HapticFeedback.notificationOccurred('success');
+            if (result.error) {
+                if (result.code === 'NOT_CONFIGURED') {
+                    // Demo mode - show success without actual payment
+                    setSuccess(true);
+                    if (window.Telegram?.WebApp?.HapticFeedback) {
+                        window.Telegram.WebApp.HapticFeedback.notificationOccurred('success');
+                    }
+                } else {
+                    setError(result.error);
                 }
+            } else if (result.confirmation_url) {
+                // Real payment - show URL and payment ID
+                setPaymentId(result.payment_id);
+                setPaymentUrl(result.confirmation_url);
             }
         } catch (e) {
             console.error(e);
+            setError('Ошибка сети');
         } finally {
             setProcessing(false);
         }
+    };
+
+    const handleOpenPayment = () => {
+        if (paymentUrl) {
+            openPaymentUrl(paymentUrl);
+        }
+    };
+
+    const handleCheckPayment = async () => {
+        if (!paymentId) return;
+
+        setProcessing(true);
+        try {
+            const result = await checkPaymentStatus(paymentId);
+            if (result.status === 'succeeded') {
+                setSuccess(true);
+                setPaymentId(null);
+                setPaymentUrl(null);
+                if (window.Telegram?.WebApp?.HapticFeedback) {
+                    window.Telegram.WebApp.HapticFeedback.notificationOccurred('success');
+                }
+            } else if (result.status === 'pending') {
+                setError('Оплата ещё не завершена. Завершите оплату и нажмите "Проверить".');
+            } else if (result.status === 'canceled') {
+                setError('Платёж отменён. Попробуйте снова.');
+                setPaymentId(null);
+                setPaymentUrl(null);
+            }
+        } catch (e) {
+            setError('Ошибка проверки');
+        } finally {
+            setProcessing(false);
+        }
+    };
+
+    const resetModal = () => {
+        setShowPayment(false);
+        setSuccess(false);
+        setPaymentId(null);
+        setPaymentUrl(null);
+        setError(null);
     };
 
     return (
@@ -100,37 +145,7 @@ export default function KnowledgeBase() {
                             exit={{ scale: 0.9, y: 20 }}
                             className="bg-gray-900 border border-white/10 p-6 rounded-2xl w-full max-w-sm flex flex-col gap-6 shadow-2xl relative"
                         >
-                            {!success ? (
-                                <>
-                                    <div className="text-center">
-                                        <h3 className="text-xl font-bold mb-2">Разблокировать все?</h3>
-                                        <p className="text-sm text-gray-400">
-                                            Вы получите полный доступ к расшифровке вашей Матрицы, Астро-карты и Дизайна.
-                                        </p>
-                                    </div>
-
-                                    <div className="bg-white/5 p-4 rounded-xl flex justify-between items-center">
-                                        <span>К оплате:</span>
-                                        <span className="text-xl font-bold">49.00 RUB</span>
-                                    </div>
-
-                                    <div className="flex gap-2">
-                                        <button
-                                            onClick={() => setShowPayment(false)}
-                                            className="btn flex-1 bg-white/10 hover:bg-white/20"
-                                        >
-                                            Отмена
-                                        </button>
-                                        <button
-                                            onClick={handlePayment}
-                                            disabled={processing}
-                                            className="btn btn-primary flex-1 flex items-center justify-center gap-2"
-                                        >
-                                            {processing ? <Loader2 className="animate-spin" size={18} /> : "Оплатить"}
-                                        </button>
-                                    </div>
-                                </>
-                            ) : (
+                            {success ? (
                                 <div className="text-center py-6 flex flex-col items-center gap-4">
                                     <div className="w-16 h-16 rounded-full bg-green-500/20 flex items-center justify-center text-green-500">
                                         <CheckCircle size={32} />
@@ -142,12 +157,86 @@ export default function KnowledgeBase() {
                                         </p>
                                     </div>
                                     <button
-                                        onClick={() => { setShowPayment(false); setSuccess(false); }}
+                                        onClick={resetModal}
                                         className="btn btn-primary w-full"
                                     >
                                         Отлично
                                     </button>
                                 </div>
+                            ) : paymentUrl ? (
+                                <div className="flex flex-col gap-4">
+                                    <div className="text-center">
+                                        <h3 className="text-xl font-bold mb-2">Оплата создана</h3>
+                                        <p className="text-sm text-gray-400">
+                                            Нажмите "Перейти к оплате" для завершения.
+                                        </p>
+                                    </div>
+
+                                    {error && (
+                                        <div className="text-amber-400 text-sm p-2 bg-amber-500/10 rounded-lg text-center">
+                                            {error}
+                                        </div>
+                                    )}
+
+                                    <button
+                                        onClick={handleOpenPayment}
+                                        className="btn btn-primary w-full flex items-center justify-center gap-2"
+                                    >
+                                        <ExternalLink size={18} />
+                                        Перейти к оплате (49₽)
+                                    </button>
+
+                                    <button
+                                        onClick={handleCheckPayment}
+                                        disabled={processing}
+                                        className="btn bg-white/10 hover:bg-white/20 w-full flex items-center justify-center gap-2"
+                                    >
+                                        {processing ? <Loader2 className="animate-spin" size={18} /> : "🔄 Проверить оплату"}
+                                    </button>
+
+                                    <button
+                                        onClick={resetModal}
+                                        className="text-gray-400 hover:text-white text-sm"
+                                    >
+                                        Отмена
+                                    </button>
+                                </div>
+                            ) : (
+                                <>
+                                    <div className="text-center">
+                                        <h3 className="text-xl font-bold mb-2">Разблокировать все?</h3>
+                                        <p className="text-sm text-gray-400">
+                                            Вы получите полный доступ к расшифровке вашей Матрицы, Астро-карты и Дизайна.
+                                        </p>
+                                    </div>
+
+                                    {error && (
+                                        <div className="text-red-400 text-sm p-2 bg-red-500/10 rounded-lg text-center">
+                                            ⚠️ {error}
+                                        </div>
+                                    )}
+
+                                    <div className="bg-white/5 p-4 rounded-xl flex justify-between items-center">
+                                        <span>К оплате:</span>
+                                        <span className="text-xl font-bold">49.00 RUB</span>
+                                    </div>
+
+                                    <div className="flex gap-2">
+                                        <button
+                                            onClick={resetModal}
+                                            className="btn flex-1 bg-white/10 hover:bg-white/20"
+                                        >
+                                            Отмена
+                                        </button>
+                                        <button
+                                            onClick={handlePayment}
+                                            disabled={processing || paymentLoading}
+                                            className="btn btn-primary flex-1 flex items-center justify-center gap-2"
+                                        >
+                                            {processing ? <Loader2 className="animate-spin" size={18} /> : "Оплатить"}
+                                        </button>
+                                    </div>
+                                </>
                             )}
                         </motion.div>
                     </motion.div>
@@ -156,3 +245,4 @@ export default function KnowledgeBase() {
         </div>
     );
 }
+

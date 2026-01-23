@@ -21,6 +21,10 @@ export const useGameStore = create((set, get) => ({
     userId: getUserId(),
     inventory: [],
 
+    // Payment state
+    currentPayment: null,
+    paymentLoading: false,
+
     syncUser: async () => {
         try {
             const res = await fetch(`${API_URL}/energy/check?user_id=${get().userId}`, {
@@ -29,7 +33,7 @@ export const useGameStore = create((set, get) => ({
             });
             const data = await res.json();
             if (data.energy !== undefined) {
-                set({ energy: data.energy, balanceDust: data.balance_dust || 0 }); // API should return dust too
+                set({ energy: data.energy, balanceDust: data.balance_dust || 0 });
             }
         } catch (e) {
             console.error("Sync failed", e);
@@ -73,5 +77,84 @@ export const useGameStore = create((set, get) => ({
             console.error(e);
             return { error: "Network error" };
         }
+    },
+
+    // ==================== Payment Functions ====================
+
+    /**
+     * Create a payment via YooKassa
+     * @param {string} productType - 'test_result', 'matrix_reading', 'custom_reading'
+     * @param {string} customAmount - Optional custom amount for special products
+     * @returns {Object} - { success, payment_id, confirmation_url } or { error }
+     */
+    createPayment: async (productType, customAmount = null) => {
+        set({ paymentLoading: true });
+        try {
+            const body = {
+                user_id: get().userId,
+                product_type: productType
+            };
+            if (customAmount) {
+                body.amount = customAmount;
+            }
+
+            const res = await fetch(`${API_URL}/payment/create`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                set({ currentPayment: data, paymentLoading: false });
+            } else {
+                set({ paymentLoading: false });
+            }
+
+            return data;
+        } catch (e) {
+            console.error("Payment creation failed:", e);
+            set({ paymentLoading: false });
+            return { error: "Network error" };
+        }
+    },
+
+    /**
+     * Check status of a payment
+     * @param {string} paymentId - YooKassa payment ID
+     * @returns {Object} - { payment_id, status, paid } or { error }
+     */
+    checkPaymentStatus: async (paymentId) => {
+        try {
+            const res = await fetch(`${API_URL}/payment/status/${paymentId}`, {
+                method: 'GET',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            const data = await res.json();
+            return data;
+        } catch (e) {
+            console.error("Payment status check failed:", e);
+            return { error: "Network error" };
+        }
+    },
+
+    /**
+     * Open payment URL - for Telegram WebApp
+     * Uses Telegram.WebApp.openLink for proper behavior
+     * @param {string} url - Payment confirmation URL
+     */
+    openPaymentUrl: (url) => {
+        if (window.Telegram?.WebApp?.openLink) {
+            // Use Telegram's method for external links
+            window.Telegram.WebApp.openLink(url);
+        } else {
+            // Fallback for browser
+            window.open(url, '_blank');
+        }
+    },
+
+    clearPayment: () => {
+        set({ currentPayment: null });
     }
 }))
+
