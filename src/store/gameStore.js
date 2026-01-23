@@ -5,8 +5,11 @@ const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8080/api";
 const getUserId = () => {
     // Try Telegram WebApp
     const tgUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
+    console.log('[DEBUG] Telegram initDataUnsafe:', window.Telegram?.WebApp?.initDataUnsafe);
+    console.log('[DEBUG] Telegram user:', tgUser);
     if (tgUser) return tgUser.id;
     // Fallback for dev
+    console.log('[DEBUG] Using fallback user_id: 12345');
     return 12345;
 };
 
