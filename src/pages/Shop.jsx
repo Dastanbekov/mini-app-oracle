@@ -215,9 +215,9 @@ export default function Shop() {
                                     />
                                     <button
                                         onClick={() => setExchangeAmount(Math.floor(balanceFlowers))}
-                                        className="bg-white/10 hover:bg-white/20 px-4 rounded-lg text-sm font-bold text-amber-200"
+                                        className="bg-white/10 hover:bg-white/20 px-2 py-2 rounded-lg text-xs font-bold text-amber-200 whitespace-nowrap"
                                     >
-                                        MAX
+                                        МАХ
                                     </button>
                                 </div>
 
