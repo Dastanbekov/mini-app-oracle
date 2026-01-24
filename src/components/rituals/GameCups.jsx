@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useGameStore } from '../../store/gameStore';
-import { Sparkles, Star } from 'lucide-react';
+import { Sparkles, Flower2 } from 'lucide-react';
 import CupImage from '../../assets/cup.png';
 
 // Using SVG paths for a more "Mystical Cup" look instead of simple div
@@ -107,7 +107,7 @@ export default function GameCups() {
                                         exit={{ opacity: 0 }}
                                         className="absolute top-0 z-20"
                                     >
-                                        <Star className="w-12 h-12 text-yellow-300 fill-yellow-300 animate-spin-slow drop-shadow-lg" />
+                                        <Flower2 className="w-12 h-12 text-pink-300 fill-pink-300 animate-spin-slow drop-shadow-lg" />
                                         <motion.div
                                             initial={{ scale: 0 }}
                                             animate={{ scale: 1.5 }}
