@@ -155,7 +155,8 @@ export default function GameFog({ onNoEnergy }) {
         ctx.arc(x, y, 30, 0, Math.PI * 2);
         ctx.fill();
 
-        if (Math.random() > 0.7) checkReveal();
+        // Check reveal more frequently
+        checkReveal();
     };
 
     const checkReveal = () => {
@@ -300,11 +301,11 @@ export default function GameFog({ onNoEnergy }) {
                                 height={420}
                                 className="w-full h-full touch-none cursor-pointer rounded-xl"
                                 onMouseDown={() => setIsScratching(true)}
-                                onMouseUp={() => setIsScratching(false)}
-                                onMouseLeave={() => setIsScratching(false)}
+                                onMouseUp={() => { setIsScratching(false); checkReveal(); }}
+                                onMouseLeave={() => { setIsScratching(false); checkReveal(); }}
                                 onMouseMove={handleMouseMove}
                                 onTouchStart={() => setIsScratching(true)}
-                                onTouchEnd={() => setIsScratching(false)}
+                                onTouchEnd={() => { setIsScratching(false); checkReveal(); }}
                                 onTouchMove={handleMouseMove}
                                 onClick={handleCanvasClick}
                             />
