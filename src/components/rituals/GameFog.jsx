@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { useGameStore } from '../../store/gameStore';
-import { Eye, X, Sparkles } from 'lucide-react';
+import { Eye, X, Sparkles, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import TarotCard from '../TarotCard';
 
@@ -10,78 +10,116 @@ export default function GameFog() {
     const canvasRef = useRef(null);
     const [isScratching, setIsScratching] = useState(false);
     const [revealed, setRevealed] = useState(false);
+    const [loading, setLoading] = useState(false);
 
+    // Scratch progress
+    const [progress, setProgress] = useState(0);
+
+    // Initialize Canvas when card is fetched
     useEffect(() => {
-        if (!canvasRef.current || card) return;
+        if (!canvasRef.current || !card || revealed) return;
 
         const canvas = canvasRef.current;
         const ctx = canvas.getContext('2d');
 
-        // Advanced Fog Texture
+        // Draw cover image (Mystical Design with "A")
+        // We'll create a nice gradient/pattern
         const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-        gradient.addColorStop(0, '#334155'); // slate-700
-        gradient.addColorStop(1, '#0f172a'); // slate-900
+        gradient.addColorStop(0, '#1e1b4b'); // indigo-950
+        gradient.addColorStop(0.5, '#312e81'); // indigo-900
+        gradient.addColorStop(1, '#1e1b4b');
         ctx.fillStyle = gradient;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        // Add "Fog" noise/text
-        ctx.fillStyle = 'rgba(255,255,255,0.1)';
-        for (let i = 0; i < 50; i++) {
+        // Pattern
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+        ctx.lineWidth = 2;
+        for (let i = 0; i < canvas.width; i += 20) {
             ctx.beginPath();
-            ctx.arc(Math.random() * canvas.width, Math.random() * canvas.height, Math.random() * 5, 0, Math.PI * 2);
-            ctx.fill();
+            ctx.moveTo(i, 0);
+            ctx.lineTo(i, canvas.height);
+            ctx.stroke();
         }
 
-        ctx.fillStyle = 'rgba(255,255,255,0.3)';
-        ctx.font = 'italic 24px serif';
+        // Center "A" or Symbol
+        ctx.fillStyle = 'rgba(255, 215, 0, 0.3)';
+        ctx.font = 'bold 80px serif';
         ctx.textAlign = 'center';
-        ctx.fillText("Туман Судьбы", canvas.width / 2, canvas.height / 2);
+        ctx.textBaseline = 'middle';
+        ctx.fillText("?", canvas.width / 2, canvas.height / 2);
 
-    }, [revealed, card]);
+        ctx.font = 'italic 20px serif';
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+        ctx.fillText("Сотри меня", canvas.width / 2, canvas.height / 2 + 50);
+
+        // Reset composite operation
+        ctx.globalCompositeOperation = 'source-over';
+
+    }, [card, revealed]);
+
+    const handleStart = async () => {
+        if (balanceDust < 100) return;
+        setLoading(true);
+        const data = await playFog(); // API call consumes dust and returns card
+        setLoading(false);
+        if (data && !data.error) {
+            setCard(data);
+            setRevealed(false);
+            setProgress(0);
+        }
+    };
 
     const handleMouseMove = (e) => {
-        if (!isScratching || revealed || card) return;
+        if (!isScratching || revealed || !card) return;
+
         const canvas = canvasRef.current;
         const rect = canvas.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
+
+        // Handle both mouse and touch
+        const clientX = e.clientX || e.touches?.[0]?.clientX;
+        const clientY = e.clientY || e.touches?.[0]?.clientY;
+
+        if (!clientX || !clientY) return;
+
+        const x = clientX - rect.left;
+        const y = clientY - rect.top;
 
         const ctx = canvas.getContext('2d');
         ctx.globalCompositeOperation = 'destination-out';
 
-        // Create a soft brush
-        const gradient = ctx.createRadialGradient(x, y, 0, x, y, 25);
-        gradient.addColorStop(0, 'rgba(0,0,0,1)');
-        gradient.addColorStop(1, 'rgba(0,0,0,0)');
-
-        ctx.fillStyle = gradient;
+        // Scratch Brush
         ctx.beginPath();
-        ctx.arc(x, y, 25, 0, Math.PI * 2);
+        ctx.arc(x, y, 20, 0, Math.PI * 2);
         ctx.fill();
 
-        checkReveal();
+        // Throttle check for performance (e.g., check every 10 events or simplify check)
+        // For simplicity, we check periodically or here
+        if (Math.random() > 0.8) checkReveal();
     };
 
     const checkReveal = () => {
         const canvas = canvasRef.current;
+        if (!canvas) return;
+
         const ctx = canvas.getContext('2d');
+        // Sample pixels to determine percentage (every 20th pixel)
         const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        let clear = 0;
-        // Optimization: check every 16th pixel
-        for (let i = 3; i < imageData.data.length; i += 64) {
-            if (imageData.data[i] === 0) clear++;
+        const pixels = imageData.data;
+        let clearCount = 0;
+        const totalPixels = pixels.length / 4;
+        const sampleRate = 20;
+
+        for (let i = 0; i < totalPixels; i += sampleRate) {
+            if (pixels[i * 4 + 3] === 0) { // Alpha channel is 0
+                clearCount++;
+            }
         }
 
-        if (clear / (imageData.data.length / 64) > 0.35) {
+        const percentage = clearCount / (totalPixels / sampleRate);
+        setProgress(percentage);
+
+        if (percentage > 0.4) { // 40% cleared
             setRevealed(true);
-            doPull();
-        }
-    };
-
-    const doPull = async () => {
-        const data = await playFog();
-        if (data && !data.error) {
-            setCard(data);
         }
     };
 
@@ -91,70 +129,105 @@ export default function GameFog() {
                 Туман Таро
             </h2>
 
-            <div className="relative w-[260px] h-[420px] [perspective:1000px] flex items-center justify-center">
-                {/* 1. The Card - Always Rendered */}
-                <TarotCard
-                    cardData={card || { name: 'Unknown', image: '' }}
-                    flipped={!!card} // Flip when card data is present
-                    onFlip={() => { }}
-                    className="absolute inset-0 z-0 shadow-2xl rounded-xl"
-                />
+            <div className="relative w-[260px] h-[420px] rounded-xl flex items-center justify-center">
+                {/* 1. The Result Card (Hidden underneath) */}
+                {card && (
+                    <div className="absolute inset-0 z-0">
+                        <TarotCard
+                            cardData={card}
+                            flipped={true}
+                            onFlip={() => { }}
+                            className="w-full h-full shadow-2xl rounded-xl"
+                        />
+                    </div>
+                )}
 
-                {/* 2. The Fog Layer (Canvas) */}
+                {/* 2. The Scratch Layer (Canvas) */}
                 <AnimatePresence>
-                    {!card && (
+                    {!revealed && card && (
                         <motion.div
-                            key="fog-layer"
                             initial={{ opacity: 1 }}
-                            exit={{ opacity: 0, transition: { duration: 0.8 } }}
-                            className="absolute inset-0 z-10 rounded-xl overflow-hidden touch-none"
+                            exit={{ opacity: 0, scale: 1.1, pointerEvents: 'none' }}
+                            transition={{ duration: 0.5 }}
+                            className="absolute inset-0 z-10 rounded-xl overflow-hidden shadow-2xl bg-[#1e1b4b]"
                         >
                             <canvas
                                 ref={canvasRef}
                                 width={260}
                                 height={420}
-                                className="w-full h-full cursor-crosshair"
-                                onMouseDown={() => { if (balanceDust >= 100) setIsScratching(true); }}
+                                className="w-full h-full touch-none cursor-crosshair"
+                                onMouseDown={() => setIsScratching(true)}
                                 onMouseUp={() => setIsScratching(false)}
+                                onMouseLeave={() => setIsScratching(false)}
                                 onMouseMove={handleMouseMove}
-                                onTouchStart={() => { if (balanceDust >= 100) setIsScratching(true); }}
+                                onTouchStart={() => setIsScratching(true)}
                                 onTouchEnd={() => setIsScratching(false)}
-                                onTouchMove={(e) => {
-                                    const touch = e.touches[0];
-                                    handleMouseMove({ clientX: touch.clientX, clientY: touch.clientY });
-                                }}
+                                onTouchMove={handleMouseMove}
                             />
-
-                            {!isScratching && (
-                                <div className="absolute bottom-10 left-0 right-0 text-center pointer-events-none animate-bounce-slow z-20">
-                                    <p className="text-xs text-amber-200/80 uppercase tracking-widest drop-shadow-md">Проведи пальцем</p>
+                            {/* Instruction overlay - fades out on scratch */}
+                            {progress < 0.05 && (
+                                <div className="absolute bottom-10 w-full text-center pointer-events-none animate-pulse">
+                                    <p className="text-white/50 text-xs uppercase tracking-widest">Потрите, чтобы открыть</p>
                                 </div>
                             )}
                         </motion.div>
                     )}
                 </AnimatePresence>
 
-                {/* 3. Close Button (Only when revealed) */}
-                {card && (
+                {/* 3. Start State (Empty Placeholder) */}
+                {!card && !loading && (
+                    <div className="absolute inset-0 z-0 bg-white/5 rounded-xl border-2 border-dashed border-white/20 flex flex-col items-center justify-center gap-4">
+                        <p className="text-blue-200/60 font-medium text-center px-4">
+                            Карта судьбы скрыта под слоем реальности
+                        </p>
+                        <button
+                            onClick={handleStart}
+                            disabled={balanceDust < 100}
+                            className={`px-6 py-2 rounded-full font-bold flex items-center gap-2 transition-all
+                                ${balanceDust >= 100
+                                    ? 'bg-blue-500 hover:bg-blue-400 text-white shadow-lg shadow-blue-500/30'
+                                    : 'bg-gray-700 text-gray-400 cursor-not-allowed'}
+                            `}
+                        >
+                            {balanceDust >= 100 ? (
+                                <>
+                                    <Sparkles size={18} />
+                                    Открыть (100 💎)
+                                </>
+                            ) : (
+                                <>Не хватает пыли</>
+                            )}
+                        </button>
+                    </div>
+                )}
+
+                {/* Loading State */}
+                {loading && (
+                    <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/40 rounded-xl backdrop-blur-sm">
+                        <Loader2 className="animate-spin text-blue-400" size={40} />
+                    </div>
+                )}
+
+                {/* Close Button (Only when revealed) */}
+                {revealed && (
                     <motion.button
                         initial={{ opacity: 0, scale: 0 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ delay: 0.5 }}
-                        onClick={() => { setCard(null); setRevealed(false); setIsScratching(false); }}
-                        className="absolute -top-4 -right-4 z-50 w-10 h-10 rounded-full bg-black/60 backdrop-blur-md flex items-center justify-center text-white/70 hover:bg-[#996515] hover:text-white transition-all shadow-lg border border-[#996515]/30"
+                        onClick={() => { setCard(null); setRevealed(false); setProgress(0); }}
+                        className="absolute -bottom-16 z-50 px-6 py-2 rounded-full bg-white/10 border border-white/20 text-white hover:bg-white/20 transition-all flex items-center gap-2"
                     >
-                        <X size={20} />
+                        <X size={16} />
+                        Закрыть
                     </motion.button>
                 )}
             </div>
 
-            {!card && (
-                <div className="text-center">
-                    <p className="text-blue-200/60 font-medium">Сотри туман, чтобы найти карту</p>
-                    <div className="mt-2 inline-flex items-center gap-2 px-4 py-1 rounded-full bg-blue-500/10 border border-blue-500/20">
-                        <span className="text-blue-300 font-bold">100 Пыли</span>
-                    </div>
-                </div>
+            {/* Helper Text */}
+            {card && !revealed && (
+                <p className="text-xs text-gray-500 animate-fade-in">
+                    Стирайте защитный слой...
+                </p>
             )}
         </div>
     );

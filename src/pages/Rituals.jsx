@@ -71,7 +71,12 @@ export default function Rituals() {
                     <div className="flex items-center justify-end gap-2">
                         <div className="flex flex-col items-end">
                             <p className="text-[10px] text-gray-400 uppercase tracking-widest leading-none">Таро</p>
-                            <h2 className="text-lg font-bold font-display text-yellow-400">{balanceTarotCoins?.toFixed(2) || '0.00'}</h2>
+                            <div className="flex items-center gap-1">
+                                <Link to="/shop" state={{ tab: 'exchange' }} className="w-4 h-4 rounded-full bg-white/10 flex items-center justify-center text-white/50 hover:bg-yellow-500 hover:text-white transition-colors">
+                                    <Plus size={10} />
+                                </Link>
+                                <h2 className="text-lg font-bold font-display text-yellow-400">{balanceTarotCoins?.toFixed(2) || '0.00'}</h2>
+                            </div>
                         </div>
                         <div className="w-8 h-8 rounded-full bg-yellow-500/20 flex items-center justify-center text-yellow-400">
                             <span className="font-bold text-xs">TC</span>

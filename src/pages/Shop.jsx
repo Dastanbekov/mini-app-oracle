@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useGameStore } from '../store/gameStore';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ShoppingBag, Zap, Gem, ArrowLeft, Loader2, RefreshCw, Coins } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const PRODUCTS = [
     {
@@ -45,9 +45,10 @@ const PRODUCTS = [
 
 export default function Shop() {
     const navigate = useNavigate();
+    const location = useLocation();
     const { createPayment, openPaymentUrl, paymentLoading, balanceFlowers, balanceTarotCoins, exchangeFlowers } = useGameStore();
     const [processingId, setProcessingId] = useState(null);
-    const [activeTab, setActiveTab] = useState('shop');
+    const [activeTab, setActiveTab] = useState(location.state?.tab || 'shop');
     const [exchangeAmount, setExchangeAmount] = useState('');
     const [exchangeLoading, setExchangeLoading] = useState(false);
 
