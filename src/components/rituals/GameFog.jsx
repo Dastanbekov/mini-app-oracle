@@ -13,16 +13,96 @@ export default function GameFog() {
     const [loading, setLoading] = useState(false);
     const [progress, setProgress] = useState(0);
 
-    // Initialize transparent Canvas when card is fetched
+    // Draw golden card back on canvas when card is fetched
     useEffect(() => {
         if (!canvasRef.current || !card || revealed) return;
 
         const canvas = canvasRef.current;
         const ctx = canvas.getContext('2d');
+        const w = canvas.width;
+        const h = canvas.height;
 
-        // Make canvas fully opaque initially (fills cover layer)
-        ctx.fillStyle = 'black';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        // Clear canvas first
+        ctx.clearRect(0, 0, w, h);
+
+        // === Draw Golden Card Back ===
+
+        // 1. Main background - dark gray
+        ctx.fillStyle = '#151515';
+        ctx.fillRect(0, 0, w, h);
+
+        // 2. Outer border - deep gold
+        ctx.strokeStyle = '#996515';
+        ctx.lineWidth = 4;
+        ctx.strokeRect(2, 2, w - 4, h - 4);
+
+        // 3. Inner frame area
+        const padding = 16;
+        ctx.fillStyle = '#1a1a1c';
+        ctx.fillRect(padding, padding, w - padding * 2, h - padding * 2);
+
+        // 4. Inner border
+        ctx.strokeStyle = 'rgba(153, 101, 21, 0.3)';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(padding, padding, w - padding * 2, h - padding * 2);
+
+        // 5. Radial gradient overlay
+        const gradient = ctx.createRadialGradient(w / 2, h / 2, 0, w / 2, h / 2, w / 2);
+        gradient.addColorStop(0, 'rgba(100, 100, 100, 0.15)');
+        gradient.addColorStop(1, 'rgba(26, 26, 28, 0)');
+        ctx.fillStyle = gradient;
+        ctx.fillRect(padding, padding, w - padding * 2, h - padding * 2);
+
+        // 6. "A" Letter - bright gold
+        ctx.fillStyle = '#FDD017';
+        ctx.font = 'thin 120px Georgia, serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.shadowColor = 'rgba(153, 101, 21, 0.5)';
+        ctx.shadowBlur = 15;
+        ctx.fillText('A', w / 2, h / 2 - 10);
+        ctx.shadowBlur = 0;
+
+        // 7. Decorative corners
+        const cornerSize = 16;
+        const cornerOffset = 12;
+        ctx.strokeStyle = '#996515';
+        ctx.lineWidth = 1;
+
+        // Top-left
+        ctx.beginPath();
+        ctx.moveTo(cornerOffset, cornerOffset + cornerSize);
+        ctx.lineTo(cornerOffset, cornerOffset);
+        ctx.lineTo(cornerOffset + cornerSize, cornerOffset);
+        ctx.stroke();
+
+        // Top-right
+        ctx.beginPath();
+        ctx.moveTo(w - cornerOffset - cornerSize, cornerOffset);
+        ctx.lineTo(w - cornerOffset, cornerOffset);
+        ctx.lineTo(w - cornerOffset, cornerOffset + cornerSize);
+        ctx.stroke();
+
+        // Bottom-left
+        ctx.beginPath();
+        ctx.moveTo(cornerOffset, h - cornerOffset - cornerSize);
+        ctx.lineTo(cornerOffset, h - cornerOffset);
+        ctx.lineTo(cornerOffset + cornerSize, h - cornerOffset);
+        ctx.stroke();
+
+        // Bottom-right
+        ctx.beginPath();
+        ctx.moveTo(w - cornerOffset - cornerSize, h - cornerOffset);
+        ctx.lineTo(w - cornerOffset, h - cornerOffset);
+        ctx.lineTo(w - cornerOffset, h - cornerOffset - cornerSize);
+        ctx.stroke();
+
+        // 8. Hint text at the bottom
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+        ctx.font = '12px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Сотрите, чтобы открыть', w / 2, h - 40);
+
         ctx.globalCompositeOperation = 'source-over';
 
     }, [card, revealed]);
@@ -50,15 +130,18 @@ export default function GameFog() {
 
         if (!clientX || !clientY) return;
 
-        const x = clientX - rect.left;
-        const y = clientY - rect.top;
+        // Scale coordinates for canvas resolution
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+        const x = (clientX - rect.left) * scaleX;
+        const y = (clientY - rect.top) * scaleY;
 
         const ctx = canvas.getContext('2d');
         ctx.globalCompositeOperation = 'destination-out';
 
-        // Scratch Brush
+        // Scratch Brush - larger for better UX
         ctx.beginPath();
-        ctx.arc(x, y, 25, 0, Math.PI * 2);
+        ctx.arc(x, y, 30, 0, Math.PI * 2);
         ctx.fill();
 
         if (Math.random() > 0.7) checkReveal();
@@ -89,25 +172,14 @@ export default function GameFog() {
         }
     };
 
-    // Golden Card Back Component (the scratchable layer visual)
+    // Golden Card Back Component for preview
     const GoldenCardBack = () => (
         <div className="absolute inset-0 h-full w-full rounded-xl border-2 border-[#996515] bg-[#151515] p-2 shadow-[0_0_15px_rgba(153,101,21,0.2)]">
-            {/* Inner frame */}
             <div className="flex h-full w-full flex-col items-center justify-center rounded-lg border border-[#996515]/30 bg-[#1a1a1c] bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-gray-800/20 via-[#1a1a1c] to-[#1a1a1c]">
-                {/* "A" letter */}
                 <div className="text-[100px] font-thin text-[#FDD017] drop-shadow-[0_2px_10px_rgba(153,101,21,0.5)] font-serif leading-none select-none opacity-90">
                     A
                 </div>
-
-                {/* Hint text */}
-                {progress < 0.05 && (
-                    <p className="absolute bottom-10 text-white/40 text-xs uppercase tracking-widest animate-pulse">
-                        Сотрите, чтобы открыть
-                    </p>
-                )}
             </div>
-
-            {/* Decorative corners */}
             <div className="absolute top-3 left-3 w-4 h-4 border-t border-l border-[#996515]" />
             <div className="absolute top-3 right-3 w-4 h-4 border-t border-r border-[#996515]" />
             <div className="absolute bottom-3 left-3 w-4 h-4 border-b border-l border-[#996515]" />
@@ -134,28 +206,20 @@ export default function GameFog() {
                     </div>
                 )}
 
-                {/* 2. The Golden Card Back (Visual Layer) + Canvas (Scratch Detection) */}
+                {/* 2. The Scratch Layer (Canvas with golden card drawn on it) */}
                 <AnimatePresence>
                     {!revealed && card && (
                         <motion.div
                             initial={{ opacity: 1 }}
                             exit={{ opacity: 0, scale: 1.05 }}
                             transition={{ duration: 0.4 }}
-                            className="absolute inset-0 z-10 rounded-xl overflow-hidden"
+                            className="absolute inset-0 z-10 rounded-xl overflow-hidden shadow-2xl"
                         >
-                            {/* Golden Back Visual */}
-                            <GoldenCardBack />
-
-                            {/* Invisible Canvas for scratch detection - uses mask */}
                             <canvas
                                 ref={canvasRef}
                                 width={260}
                                 height={420}
-                                className="absolute inset-0 w-full h-full touch-none cursor-crosshair"
-                                style={{
-                                    mixBlendMode: 'destination-in',
-                                    opacity: 1
-                                }}
+                                className="w-full h-full touch-none cursor-crosshair rounded-xl"
                                 onMouseDown={() => setIsScratching(true)}
                                 onMouseUp={() => setIsScratching(false)}
                                 onMouseLeave={() => setIsScratching(false)}
@@ -171,12 +235,10 @@ export default function GameFog() {
                 {/* 3. Start State (Golden Card Placeholder) */}
                 {!card && !loading && (
                     <div className="absolute inset-0 z-0 rounded-xl flex flex-col items-center justify-center">
-                        {/* Show golden back as preview */}
                         <div className="relative w-full h-full opacity-60">
                             <GoldenCardBack />
                         </div>
 
-                        {/* Overlay button */}
                         <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-black/30 rounded-xl">
                             <p className="text-blue-200/80 font-medium text-center px-4 text-sm">
                                 Карта судьбы скрыта
