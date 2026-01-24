@@ -1,11 +1,12 @@
 import { Link } from 'react-router-dom';
-import { MoonStar, Grid, UserSearch, ArrowRight } from 'lucide-react';
+import { MoonStar, Grid, UserSearch, ArrowRight, Coins } from 'lucide-react';
 
 export default function KnowledgeBase() {
     const items = [
         { name: "Астрология", path: "/astrology", icon: MoonStar, color: "text-purple-400", bg: "bg-purple-500/10", desc: "Звёздный прогноз" },
         { name: "Матрица Судьбы", path: "/numerology", icon: Grid, color: "text-pink-400", bg: "bg-pink-500/10", desc: "22 Аркана Таро" },
         { name: "Human Design", path: "/human-design", icon: UserSearch, color: "text-blue-400", bg: "bg-blue-500/10", desc: "Дизайн Человека" },
+        { name: "Taro Coin", path: "/taro-coin", icon: Coins, color: "text-yellow-400", bg: "bg-yellow-500/10", desc: "Криптовалюта и обмен" },
     ];
 
     return (

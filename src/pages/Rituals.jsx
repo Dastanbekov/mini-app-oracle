@@ -5,6 +5,7 @@ import { Dna, Coins, Zap, Plus, Flower2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import GameCups from '../components/rituals/GameCups';
 import GameFog from '../components/rituals/GameFog';
+import TaroCoinIcon from '../assets/taro_coin.png';
 
 export default function Rituals() {
     const { balanceDust, balanceFlowers, balanceTarotCoins, energy, maxEnergy, syncUser } = useGameStore();
@@ -78,8 +79,8 @@ export default function Rituals() {
                                 <h2 className="text-lg font-bold font-display text-yellow-400">{balanceTarotCoins?.toFixed(2) || '0.00'}</h2>
                             </div>
                         </div>
-                        <div className="w-8 h-8 rounded-full bg-yellow-500/20 flex items-center justify-center text-yellow-400">
-                            <span className="font-bold text-xs">TC</span>
+                        <div className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center">
+                            <img src={TaroCoinIcon} alt="TC" className="w-full h-full object-contain" />
                         </div>
                     </div>
                 </div>
