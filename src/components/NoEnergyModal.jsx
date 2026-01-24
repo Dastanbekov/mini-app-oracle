@@ -45,7 +45,7 @@ export default function NoEnergyModal({ isOpen, onClose }) {
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.8, y: 50 }}
                         transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                        className="glass-card max-w-sm w-full p-6 rounded-2xl border border-red-500/30 text-center"
+                        className="relative glass-card max-w-sm w-full p-6 rounded-2xl border border-red-500/30 text-center"
                         onClick={(e) => e.stopPropagation()}
                     >
                         {/* Close button */}

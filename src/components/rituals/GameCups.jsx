@@ -131,8 +131,10 @@ export default function GameCups({ onNoEnergy }) {
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                         onClick={handlePlay}
-                        disabled={energy < 1}
-                        className="btn btn-primary bg-gradient-to-r from-amber-600 to-amber-800 border-none shadow-[0_0_20px_rgba(245,158,11,0.4)] text-lg px-8 py-3 rounded-full flex items-center gap-2"
+                        className={`btn btn-primary border-none shadow-[0_0_20px_rgba(245,158,11,0.4)] text-lg px-8 py-3 rounded-full flex items-center gap-2 ${energy < 1
+                                ? 'bg-gradient-to-r from-gray-600 to-gray-700 opacity-80'
+                                : 'bg-gradient-to-r from-amber-600 to-amber-800'
+                            }`}
                     >
                         <Sparkles size={20} /> Играть (-1 ⚡)
                     </motion.button>
