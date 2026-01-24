@@ -18,7 +18,7 @@ export default function GameFog({ onNoEnergy }) {
         if (!canvasRef.current || !card || revealed) return;
 
         const canvas = canvasRef.current;
-        const ctx = canvas.getContext('2d');
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
         const w = canvas.width;
         const h = canvas.height;
 
@@ -69,28 +69,28 @@ export default function GameFog({ onNoEnergy }) {
         ctx.strokeStyle = '#996515';
         ctx.lineWidth = 1;
 
-        // Top-left
+        // Top-left corner
         ctx.beginPath();
         ctx.moveTo(cornerOffset, cornerOffset + cornerSize);
         ctx.lineTo(cornerOffset, cornerOffset);
         ctx.lineTo(cornerOffset + cornerSize, cornerOffset);
         ctx.stroke();
 
-        // Top-right
+        // Top-right corner
         ctx.beginPath();
         ctx.moveTo(w - cornerOffset - cornerSize, cornerOffset);
         ctx.lineTo(w - cornerOffset, cornerOffset);
         ctx.lineTo(w - cornerOffset, cornerOffset + cornerSize);
         ctx.stroke();
 
-        // Bottom-left
+        // Bottom-left corner
         ctx.beginPath();
         ctx.moveTo(cornerOffset, h - cornerOffset - cornerSize);
         ctx.lineTo(cornerOffset, h - cornerOffset);
         ctx.lineTo(cornerOffset + cornerSize, h - cornerOffset);
         ctx.stroke();
 
-        // Bottom-right
+        // Bottom-right corner
         ctx.beginPath();
         ctx.moveTo(w - cornerOffset - cornerSize, h - cornerOffset);
         ctx.lineTo(w - cornerOffset, h - cornerOffset);
@@ -101,7 +101,7 @@ export default function GameFog({ onNoEnergy }) {
         ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
         ctx.font = '12px sans-serif';
         ctx.textAlign = 'center';
-        ctx.fillText('Сотрите, чтобы открыть', w / 2, h - 40);
+        ctx.fillText('Сотрите или нажмите для открытия', w / 2, h - 40);
 
         ctx.globalCompositeOperation = 'source-over';
 
@@ -124,13 +124,20 @@ export default function GameFog({ onNoEnergy }) {
     };
 
     const handleMouseMove = (e) => {
-        if (!isScratching || revealed || !card) return;
+        if (!isScratching || revealed) return;
 
         const canvas = canvasRef.current;
+        if (!canvas) return;
         const rect = canvas.getBoundingClientRect();
 
-        const clientX = e.clientX || e.touches?.[0]?.clientX;
-        const clientY = e.clientY || e.touches?.[0]?.clientY;
+        let clientX, clientY;
+        if (e.touches) {
+            clientX = e.touches[0].clientX;
+            clientY = e.touches[0].clientY;
+        } else {
+            clientX = e.clientX;
+            clientY = e.clientY;
+        }
 
         if (!clientX || !clientY) return;
 
@@ -140,7 +147,7 @@ export default function GameFog({ onNoEnergy }) {
         const x = (clientX - rect.left) * scaleX;
         const y = (clientY - rect.top) * scaleY;
 
-        const ctx = canvas.getContext('2d');
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
         ctx.globalCompositeOperation = 'destination-out';
 
         // Scratch Brush - larger for better UX
@@ -155,7 +162,7 @@ export default function GameFog({ onNoEnergy }) {
         const canvas = canvasRef.current;
         if (!canvas) return;
 
-        const ctx = canvas.getContext('2d');
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
         const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
         const pixels = imageData.data;
         let clearCount = 0;
@@ -172,7 +179,21 @@ export default function GameFog({ onNoEnergy }) {
         setProgress(percentage);
 
         if (percentage > 0.35) {
-            setRevealed(true);
+            doReveal();
+        }
+    };
+
+    // Unified reveal function with animation
+    const doReveal = () => {
+        if (revealed) return;
+        setRevealed(true);
+        console.log('Card revealed!', card);
+    };
+
+    // Handle tap/click on canvas to instantly reveal
+    const handleCanvasClick = () => {
+        if (!revealed && card) {
+            doReveal();
         }
     };
 
@@ -192,7 +213,7 @@ export default function GameFog({ onNoEnergy }) {
     );
 
     return (
-        <div className="flex flex-col items-center gap-8 w-full py-10">
+        <div className="flex flex-col items-center gap-6 w-full py-6">
             <h2 className="text-3xl font-display text-transparent bg-clip-text bg-gradient-to-r from-blue-300 to-purple-400 drop-shadow-sm">
                 Туман Таро
             </h2>
@@ -204,10 +225,9 @@ export default function GameFog({ onNoEnergy }) {
                         className="absolute inset-0 z-0"
                         initial={{ scale: 1 }}
                         animate={revealed ? {
-                            scale: [1, 1.03, 1],
-                            filter: ['drop-shadow(0 0 0px gold)', 'drop-shadow(0 0 20px gold)', 'drop-shadow(0 0 10px rgba(255,215,0,0.5))']
+                            scale: [1, 1.05, 1],
                         } : {}}
-                        transition={{ duration: 0.8, ease: "easeOut" }}
+                        transition={{ duration: 0.6, ease: "easeOut" }}
                     >
                         <TarotCard
                             cardData={card}
@@ -217,38 +237,51 @@ export default function GameFog({ onNoEnergy }) {
                         />
 
                         {/* Sparkle overlay when revealed */}
-                        {revealed && (
-                            <motion.div
-                                className="absolute inset-0 pointer-events-none overflow-hidden rounded-xl"
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                            >
-                                {[...Array(8)].map((_, i) => (
+                        <AnimatePresence>
+                            {revealed && (
+                                <motion.div
+                                    className="absolute inset-0 pointer-events-none overflow-hidden rounded-xl"
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    exit={{ opacity: 0 }}
+                                >
+                                    {[...Array(12)].map((_, i) => (
+                                        <motion.div
+                                            key={i}
+                                            className="absolute"
+                                            style={{
+                                                left: `${5 + (i % 4) * 30}%`,
+                                                top: `${10 + Math.floor(i / 4) * 35}%`,
+                                                fontSize: '24px'
+                                            }}
+                                            initial={{ opacity: 0, scale: 0, rotate: 0 }}
+                                            animate={{
+                                                opacity: [0, 1, 0],
+                                                scale: [0, 1.5, 0],
+                                                rotate: [0, 180, 360]
+                                            }}
+                                            transition={{
+                                                delay: i * 0.08,
+                                                duration: 1,
+                                                repeat: 2,
+                                                repeatDelay: 0.3
+                                            }}
+                                        >
+                                            ✨
+                                        </motion.div>
+                                    ))}
+
+                                    {/* Golden glow border */}
                                     <motion.div
-                                        key={i}
-                                        className="absolute text-yellow-300"
-                                        style={{
-                                            left: `${10 + (i % 4) * 25}%`,
-                                            top: `${15 + Math.floor(i / 4) * 60}%`
-                                        }}
-                                        initial={{ opacity: 0, scale: 0, rotate: 0 }}
-                                        animate={{
-                                            opacity: [0, 1, 0],
-                                            scale: [0, 1.5, 0],
-                                            rotate: [0, 180, 360]
-                                        }}
-                                        transition={{
-                                            delay: 0.1 + i * 0.1,
-                                            duration: 1.2,
-                                            repeat: 2,
-                                            repeatDelay: 0.5
-                                        }}
-                                    >
-                                        ✨
-                                    </motion.div>
-                                ))}
-                            </motion.div>
-                        )}
+                                        className="absolute inset-0 rounded-xl border-4 border-yellow-400"
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: [0, 1, 0.5] }}
+                                        transition={{ duration: 1 }}
+                                        style={{ boxShadow: '0 0 30px rgba(255, 215, 0, 0.8), inset 0 0 30px rgba(255, 215, 0, 0.3)' }}
+                                    />
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
                     </motion.div>
                 )}
 
@@ -257,15 +290,15 @@ export default function GameFog({ onNoEnergy }) {
                     {!revealed && card && (
                         <motion.div
                             initial={{ opacity: 1 }}
-                            exit={{ opacity: 0, scale: 1.05 }}
-                            transition={{ duration: 0.4 }}
+                            exit={{ opacity: 0, scale: 1.1 }}
+                            transition={{ duration: 0.5 }}
                             className="absolute inset-0 z-10 rounded-xl overflow-hidden shadow-2xl"
                         >
                             <canvas
                                 ref={canvasRef}
                                 width={260}
                                 height={420}
-                                className="w-full h-full touch-none cursor-crosshair rounded-xl"
+                                className="w-full h-full touch-none cursor-pointer rounded-xl"
                                 onMouseDown={() => setIsScratching(true)}
                                 onMouseUp={() => setIsScratching(false)}
                                 onMouseLeave={() => setIsScratching(false)}
@@ -273,6 +306,7 @@ export default function GameFog({ onNoEnergy }) {
                                 onTouchStart={() => setIsScratching(true)}
                                 onTouchEnd={() => setIsScratching(false)}
                                 onTouchMove={handleMouseMove}
+                                onClick={handleCanvasClick}
                             />
                         </motion.div>
                     )}
@@ -317,20 +351,6 @@ export default function GameFog({ onNoEnergy }) {
                         <Loader2 className="animate-spin text-yellow-400" size={40} />
                     </div>
                 )}
-
-                {/* Close Button (Only when revealed) */}
-                {revealed && (
-                    <motion.button
-                        initial={{ opacity: 0, scale: 0 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: 1.2 }}
-                        onClick={() => { setCard(null); setRevealed(false); setProgress(0); }}
-                        className="absolute -bottom-16 z-50 px-6 py-2 rounded-full bg-white/10 border border-white/20 text-white hover:bg-white/20 transition-all flex items-center gap-2"
-                    >
-                        <X size={16} />
-                        Закрыть
-                    </motion.button>
-                )}
             </div>
 
             {/* Progress indicator while scratching */}
@@ -348,86 +368,69 @@ export default function GameFog({ onNoEnergy }) {
             <AnimatePresence>
                 {revealed && card && (
                     <motion.div
-                        initial={{ opacity: 0, y: 30 }}
-                        animate={{ opacity: 1, y: 0 }}
+                        initial={{ opacity: 0, y: 30, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 30 }}
-                        transition={{ delay: 0.5, duration: 0.5 }}
-                        className="w-full max-w-sm glass-card p-6 rounded-2xl border border-purple-500/30 relative overflow-hidden"
+                        transition={{ delay: 0.3, duration: 0.5, type: "spring" }}
+                        className="w-full max-w-sm glass-card p-5 rounded-2xl border border-yellow-500/30 relative overflow-hidden"
                     >
-                        {/* Sparkle particles */}
-                        <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            transition={{ delay: 0.7 }}
-                            className="absolute inset-0 pointer-events-none"
-                        >
-                            {[...Array(6)].map((_, i) => (
-                                <motion.div
-                                    key={i}
-                                    className="absolute text-yellow-400"
-                                    initial={{
-                                        opacity: 0,
-                                        scale: 0,
-                                        x: `${20 + i * 15}%`,
-                                        y: `${10 + (i % 3) * 30}%`
-                                    }}
-                                    animate={{
-                                        opacity: [0, 1, 0],
-                                        scale: [0, 1, 0],
-                                        y: [`${10 + (i % 3) * 30}%`, `${-10 + (i % 3) * 20}%`]
-                                    }}
-                                    transition={{
-                                        delay: 0.8 + i * 0.1,
-                                        duration: 1.5,
-                                        repeat: Infinity,
-                                        repeatDelay: 2
-                                    }}
-                                >
-                                    <Sparkles size={16} />
-                                </motion.div>
-                            ))}
-                        </motion.div>
-
                         {/* Glow effect */}
-                        <div className="absolute inset-0 bg-gradient-to-b from-purple-500/10 via-transparent to-blue-500/10 pointer-events-none" />
+                        <div className="absolute inset-0 bg-gradient-to-b from-yellow-500/10 via-transparent to-purple-500/10 pointer-events-none" />
 
                         {/* Content */}
                         <div className="relative z-10 text-center">
                             <motion.p
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: 0.6 }}
-                                className="text-xs text-purple-400 uppercase tracking-widest mb-2"
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                transition={{ delay: 0.4 }}
+                                className="text-xs text-yellow-400 uppercase tracking-widest mb-2"
                             >
-                                Вам выпала карта
+                                🎴 Вам выпала карта
                             </motion.p>
 
                             <motion.h3
                                 initial={{ opacity: 0, scale: 0.8 }}
                                 animate={{ opacity: 1, scale: 1 }}
-                                transition={{ delay: 0.7, type: "spring", stiffness: 200 }}
-                                className="text-2xl font-display font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-amber-400 to-yellow-300 mb-4"
+                                transition={{ delay: 0.5, type: "spring", stiffness: 200 }}
+                                className="text-2xl font-display font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-amber-400 to-yellow-300 mb-3"
                             >
                                 {card.name}
                             </motion.h3>
 
                             <motion.div
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                transition={{ delay: 0.9 }}
-                                className="w-16 h-0.5 bg-gradient-to-r from-transparent via-purple-500 to-transparent mx-auto mb-4"
+                                initial={{ width: 0 }}
+                                animate={{ width: '4rem' }}
+                                transition={{ delay: 0.6 }}
+                                className="h-0.5 bg-gradient-to-r from-transparent via-yellow-500 to-transparent mx-auto mb-3"
                             />
 
                             <motion.p
                                 initial={{ opacity: 0, y: 10 }}
                                 animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: 1 }}
+                                transition={{ delay: 0.7 }}
                                 className="text-sm text-gray-300 leading-relaxed"
                             >
-                                {card.desc}
+                                {card.desc || 'Таинственная карта Таро...'}
                             </motion.p>
                         </div>
                     </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* Close Button (Only when revealed) */}
+            <AnimatePresence>
+                {revealed && (
+                    <motion.button
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ delay: 0.8 }}
+                        onClick={() => { setCard(null); setRevealed(false); setProgress(0); }}
+                        className="px-6 py-2 rounded-full bg-white/10 border border-white/20 text-white hover:bg-white/20 transition-all flex items-center gap-2"
+                    >
+                        <X size={16} />
+                        Играть снова
+                    </motion.button>
                 )}
             </AnimatePresence>
         </div>
