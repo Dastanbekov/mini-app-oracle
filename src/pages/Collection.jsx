@@ -29,7 +29,9 @@ export default function Collection() {
                 <h1 className="text-3xl font-display font-bold text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent">
                     Коллекция
                 </h1>
-                <p className="text-sm text-gray-400">Собери все {78} карт.</p>
+                <p className="text-sm text-gray-400">
+                    Собрано: {cards.filter(c => c.owned).length} / {cards.length}
+                </p>
             </header>
 
             {loading ? (
@@ -38,29 +40,35 @@ export default function Collection() {
                 </div>
             ) : (
                 <div className="grid grid-cols-2 gap-4">
-                    {cards.length > 0 ? cards.map((card, idx) => (
+                    {cards.map((card) => (
                         <motion.div
-                            key={idx}
+                            key={card.id}
                             initial={{ opacity: 0, scale: 0.9 }}
                             animate={{ opacity: 1, scale: 1 }}
-                            transition={{ delay: idx * 0.05 }}
-                            className="glass-card rounded-xl overflow-hidden group relative"
+                            transition={{ delay: 0.05 }}
+                            className={`glass-card rounded-xl overflow-hidden group relative ${!card.owned ? 'opacity-60 grayscale' : ''}`}
                         >
                             <div className="relative aspect-[2/3]">
                                 <img src={card.image} alt={card.name} className="w-full h-full object-cover" />
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex flex-col justify-end p-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <p className="text-sm font-bold">{card.name}</p>
-                                </div>
-                                {card.rarity === 'gold' && (
+
+                                {!card.owned && (
+                                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                                        <span className="text-3xl opacity-50">🔒</span>
+                                    </div>
+                                )}
+
+                                {card.owned && (
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex flex-col justify-end p-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <p className="text-sm font-bold text-white shadow-black drop-shadow-md">{card.name}</p>
+                                    </div>
+                                )}
+
+                                {card.owned && card.rarity === 'gold' && (
                                     <div className="absolute top-2 right-2 text-yellow-500 animate-pulse">✨</div>
                                 )}
                             </div>
                         </motion.div>
-                    )) : (
-                        <div className="col-span-2 text-center text-gray-500 py-10">
-                            Пусто... Сыграйте в "Туман", чтобы найти карты.
-                        </div>
-                    )}
+                    ))}
                 </div>
             )}
         </div>

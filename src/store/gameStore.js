@@ -16,6 +16,8 @@ const getUserId = () => {
 export const useGameStore = create((set, get) => ({
     balanceDust: 0,
     balanceCoins: 0,
+    balanceFlowers: 0,
+    balanceTarotCoins: 0.0,
     energy: 5,
     maxEnergy: 5,
     userId: getUserId(),
@@ -33,7 +35,12 @@ export const useGameStore = create((set, get) => ({
             });
             const data = await res.json();
             if (data.energy !== undefined) {
-                set({ energy: data.energy, balanceDust: data.balance_dust || 0 });
+                set({
+                    energy: data.energy,
+                    balanceDust: data.balance_dust || 0,
+                    balanceFlowers: data.balance_flowers || 0,
+                    balanceTarotCoins: data.balance_tarot_coins || 0.0
+                });
             }
         } catch (e) {
             console.error("Sync failed", e);
@@ -51,7 +58,29 @@ export const useGameStore = create((set, get) => ({
             if (data.energy !== undefined) {
                 set({
                     energy: data.energy,
-                    balanceDust: data.balance_dust
+                    balanceDust: data.balance_dust,
+                    balanceFlowers: data.balance_flowers
+                });
+            }
+            return data;
+        } catch (e) {
+            console.error(e);
+            return { error: "Network error" };
+        }
+    },
+
+    exchangeFlowers: async (amount) => {
+        try {
+            const res = await fetch(`${API_URL}/exchange`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ user_id: get().userId, amount: parseInt(amount) })
+            });
+            const data = await res.json();
+            if (data.balance_flowers !== undefined) {
+                set({
+                    balanceFlowers: data.balance_flowers,
+                    balanceTarotCoins: data.balance_tarot_coins
                 });
             }
             return data;

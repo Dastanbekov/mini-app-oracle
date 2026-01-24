@@ -152,10 +152,18 @@ export default function GameCups() {
                         {result.win ? (
                             <div className="flex flex-col items-center">
                                 <p className="text-2xl font-bold text-green-400 drop-shadow-md">Победа!</p>
-                                <p className="text-amber-300">+{result.reward} Пыли</p>
+                                <div className="flex gap-4">
+                                    <p className="text-amber-300 font-bold">+{result.reward_dust || 50} Пыли</p>
+                                    <p className="text-pink-300 font-bold">+{result.reward_flowers || 50} Цветов</p>
+                                </div>
                             </div>
                         ) : (
-                            <p className="text-red-400 font-bold text-xl drop-shadow-md">Пусто...</p>
+                            <div className="flex flex-col items-center">
+                                <p className="text-red-400 font-bold text-xl drop-shadow-md">Пусто...</p>
+                                {result.reward_flowers > 0 && (
+                                    <p className="text-pink-300 font-bold text-sm opacity-80">Но вы нашли {result.reward_flowers} Цветов!</p>
+                                )}
+                            </div>
                         )}
                     </motion.div>
                 )}

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useGameStore } from '../store/gameStore';
-import { motion } from 'framer-motion';
-import { ShoppingBag, Zap, Gem, ArrowLeft, Loader2 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ShoppingBag, Zap, Gem, ArrowLeft, Loader2, RefreshCw, Coins } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const PRODUCTS = [
@@ -16,37 +16,40 @@ const PRODUCTS = [
     },
     {
         id: 'dust_pack_100',
-        name: 'Горсть Пыли',
+        name: 'Горсть Пыльцы',
         description: 'Немного магии для начала',
         price: '29 ₽',
         icon: Gem,
         color: 'from-amber-400 to-orange-500',
-        reward: '100 💎'
+        reward: '100 ✨'
     },
     {
         id: 'dust_pack_500',
-        name: 'Мешочек Пыли',
+        name: 'Мешочек Пыльцы',
         description: 'Хватит на 5 открытий Тумана',
         price: '99 ₽',
         icon: Gem,
         color: 'from-purple-500 to-pink-500',
-        reward: '500 💎'
+        reward: '500 ✨'
     },
     {
         id: 'dust_pack_1500',
-        name: 'Сундук Пыли',
+        name: 'Сундук Пыльцы',
         description: '1500 + 300 бонусом! Выгодно',
         price: '199 ₽',
         icon: Gem,
         color: 'from-emerald-400 to-green-600',
-        reward: '1800 💎'
+        reward: '1800 ✨'
     }
 ];
 
 export default function Shop() {
     const navigate = useNavigate();
-    const { createPayment, openPaymentUrl, paymentLoading } = useGameStore();
+    const { createPayment, openPaymentUrl, paymentLoading, balanceFlowers, balanceTarotCoins, exchangeFlowers } = useGameStore();
     const [processingId, setProcessingId] = useState(null);
+    const [activeTab, setActiveTab] = useState('shop');
+    const [exchangeAmount, setExchangeAmount] = useState('');
+    const [exchangeLoading, setExchangeLoading] = useState(false);
 
     const handleBuy = async (product) => {
         if (processingId) return;
@@ -60,6 +63,29 @@ export default function Shop() {
             alert('Ошибка создания платежа');
         }
         setProcessingId(null);
+    };
+
+    const handleExchange = async () => {
+        const amount = parseInt(exchangeAmount);
+        if (!amount || amount < 1000) {
+            alert('Минимальная сумма обмена: 1000 цветов');
+            return;
+        }
+        if (amount > balanceFlowers) {
+            alert('Недостаточно цветов');
+            return;
+        }
+
+        setExchangeLoading(true);
+        const res = await exchangeFlowers(amount);
+        setExchangeLoading(false);
+
+        if (res.error) {
+            alert(res.error);
+        } else {
+            alert(`Успешно! Получено ${res.received} TC`);
+            setExchangeAmount('');
+        }
     };
 
     return (
@@ -76,57 +102,153 @@ export default function Shop() {
                         Магазин
                     </h1>
                     <p className="text-sm text-gray-400">
-                        Пополни запасы магии
+                        {activeTab === 'shop' ? 'Пополни запасы магии' : 'Обмен ресурсов'}
                     </p>
                 </div>
             </header>
 
-            <div className="grid grid-cols-1 gap-4">
-                {PRODUCTS.map((product, idx) => (
+            {/* Tabs */}
+            <div className="bg-white/5 rounded-xl p-1 flex w-full mb-2">
+                <button
+                    onClick={() => setActiveTab('shop')}
+                    className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${activeTab === 'shop' ? 'bg-primary text-white shadow-lg' : 'text-gray-400 hover:text-white'}`}
+                >
+                    <ShoppingBag size={16} className="inline mr-2" />
+                    Покупки
+                </button>
+                <button
+                    onClick={() => setActiveTab('exchange')}
+                    className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${activeTab === 'exchange' ? 'bg-amber-600 text-white shadow-lg' : 'text-gray-400 hover:text-white'}`}
+                >
+                    <RefreshCw size={16} className="inline mr-2" />
+                    Обмен
+                </button>
+            </div>
+
+            <AnimatePresence mode="wait">
+                {activeTab === 'shop' ? (
                     <motion.div
-                        key={product.id}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: idx * 0.05 }}
-                        className="glass-card p-4 rounded-2xl border border-white/10 relative overflow-hidden group"
+                        key="shop"
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: 20 }}
+                        className="grid grid-cols-1 gap-4"
                     >
-                        {/* Background Glow */}
-                        <div className={`absolute -right-10 -top-10 w-32 h-32 bg-gradient-to-br ${product.color} opacity-20 blur-3xl group-hover:opacity-30 transition-opacity`} />
-
-                        <div className="flex items-center gap-4 relative z-10">
-                            <div className={`p-3 rounded-xl bg-gradient-to-br ${product.color} shadow-lg shadow-black/20`}>
-                                <product.icon className="text-white" size={28} />
-                            </div>
-
-                            <div className="flex-1">
-                                <h3 className="font-bold text-white text-lg">{product.name}</h3>
-                                <div className="text-xs text-white/60 mb-1">{product.description}</div>
-                                <div className={`text-sm font-bold bg-clip-text text-transparent bg-gradient-to-r ${product.color}`}>
-                                    {product.reward}
+                        {PRODUCTS.map((product, idx) => (
+                            <motion.div
+                                key={product.id}
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: idx * 0.05 }}
+                                className="glass-card p-4 rounded-2xl border border-white/10 relative overflow-hidden group"
+                            >
+                                <div className={`absolute -right-10 -top-10 w-32 h-32 bg-gradient-to-br ${product.color} opacity-20 blur-3xl group-hover:opacity-30 transition-opacity`} />
+                                <div className="flex items-center gap-4 relative z-10">
+                                    <div className={`p-3 rounded-xl bg-gradient-to-br ${product.color} shadow-lg shadow-black/20`}>
+                                        <product.icon className="text-white" size={28} />
+                                    </div>
+                                    <div className="flex-1">
+                                        <h3 className="font-bold text-white text-lg">{product.name}</h3>
+                                        <div className="text-xs text-white/60 mb-1">{product.description}</div>
+                                        <div className={`text-sm font-bold bg-clip-text text-transparent bg-gradient-to-r ${product.color}`}>
+                                            {product.reward}
+                                        </div>
+                                    </div>
+                                    <button
+                                        onClick={() => handleBuy(product)}
+                                        disabled={processingId !== null}
+                                        className={`px-4 py-2 rounded-lg font-bold text-white shadow-lg transition-all active:scale-95 flex items-center gap-2
+                                            ${processingId === product.id ? 'bg-gray-600' : `bg-gradient-to-r ${product.color} hover:brightness-110`}
+                                        `}
+                                    >
+                                        {processingId === product.id ? (
+                                            <Loader2 className="animate-spin" size={18} />
+                                        ) : (
+                                            product.price
+                                        )}
+                                    </button>
+                                </div>
+                            </motion.div>
+                        ))}
+                    </motion.div>
+                ) : (
+                    <motion.div
+                        key="exchange"
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -20 }}
+                        className="flex flex-col gap-6"
+                    >
+                        {/* Balance Info */}
+                        <div className="glass-card p-6 rounded-2xl border border-amber-500/30 bg-black/40">
+                            <div className="flex justify-between items-center mb-6">
+                                <div>
+                                    <p className="text-gray-400 text-xs uppercase tracking-widest">Баланс Цветов</p>
+                                    <h2 className="text-3xl font-display font-bold text-pink-400">{balanceFlowers} 🌸</h2>
+                                </div>
+                                <div className="text-right">
+                                    <p className="text-gray-400 text-xs uppercase tracking-widest">Таро Коины</p>
+                                    <h2 className="text-3xl font-display font-bold text-yellow-400">{balanceTarotCoins?.toFixed(2)} TC</h2>
                                 </div>
                             </div>
 
-                            <button
-                                onClick={() => handleBuy(product)}
-                                disabled={processingId !== null}
-                                className={`px-4 py-2 rounded-lg font-bold text-white shadow-lg transition-all active:scale-95 flex items-center gap-2
-                                    ${processingId === product.id ? 'bg-gray-600' : `bg-gradient-to-r ${product.color} hover:brightness-110`}
-                                `}
-                            >
-                                {processingId === product.id ? (
-                                    <Loader2 className="animate-spin" size={18} />
-                                ) : (
-                                    product.price
-                                )}
-                            </button>
+                            <hr className="border-white/10 mb-6" />
+
+                            <div className="space-y-4">
+                                <label className="text-sm text-gray-300">Сколько цветов обменять?</label>
+                                <div className="flex gap-2">
+                                    <input
+                                        type="number"
+                                        value={exchangeAmount}
+                                        onChange={(e) => setExchangeAmount(e.target.value)}
+                                        placeholder="Мин. 1000"
+                                        className="flex-1 bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-amber-500"
+                                    />
+                                    <button
+                                        onClick={() => setExchangeAmount(Math.floor(balanceFlowers))}
+                                        className="bg-white/10 hover:bg-white/20 px-4 rounded-lg text-sm font-bold text-amber-200"
+                                    >
+                                        MAX
+                                    </button>
+                                </div>
+
+                                <div className="flex justify-between text-xs text-gray-500 px-2">
+                                    <span>Вам придет:</span>
+                                    <span className="text-yellow-400 font-bold">
+                                        {exchangeAmount ? (parseInt(exchangeAmount) * 0.0005).toFixed(3) : '0.00'} TC
+                                    </span>
+                                </div>
+                                <p className="text-xs text-center text-gray-500">Курс: 1000 🌸 = 0.5 TC</p>
+
+                                <button
+                                    onClick={handleExchange}
+                                    disabled={exchangeLoading || !exchangeAmount || parseInt(exchangeAmount) < 1000}
+                                    className="w-full py-4 rounded-xl bg-gradient-to-r from-amber-600 to-yellow-600 text-white font-bold text-lg shadow-lg shadow-amber-900/40 hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center gap-2"
+                                >
+                                    {exchangeLoading ? <Loader2 className="animate-spin" /> : <RefreshCw />}
+                                    Обменять
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Tarot Coin Info */}
+                        <div className="glass-card p-4 rounded-2xl border border-yellow-500/20 bg-yellow-900/10">
+                            <div className="flex items-start gap-4">
+                                <div className="p-3 bg-yellow-500/20 rounded-full text-yellow-400">
+                                    <Coins size={24} />
+                                </div>
+                                <div>
+                                    <h3 className="font-bold text-yellow-200 text-lg mb-1">Tarot Coin (TC)</h3>
+                                    <p className="text-sm text-yellow-100/70 leading-relaxed">
+                                        Это премиальная валюта, которая в будущем выйдет на биржу (Listing).
+                                        Сейчас вы можете копить её или обменивать на индивидуальные расклады и консультации таролога.
+                                    </p>
+                                </div>
+                            </div>
                         </div>
                     </motion.div>
-                ))}
-            </div>
-
-            <div className="mt-4 text-center text-xs text-gray-500">
-                Оплата происходит через YooKassa (безопасно)
-            </div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }
