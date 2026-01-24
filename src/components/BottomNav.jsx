@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Sparkles, BookOpen, Layers } from 'lucide-react';
+import { Sparkles, BookOpen, Layers, Trophy } from 'lucide-react';
 import { clsx } from 'clsx';
 import { motion } from 'framer-motion';
 
@@ -9,6 +9,7 @@ export default function BottomNav() {
     const navItems = [
         { name: "Ритуалы", path: "/", icon: Sparkles },
         { name: "Коллекция", path: "/collection", icon: Layers },
+        { name: "Достижения", path: "/achievements", icon: Trophy },
         { name: "Знания", path: "/knowledge", icon: BookOpen },
     ];
 
