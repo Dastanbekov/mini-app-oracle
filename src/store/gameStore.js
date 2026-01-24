@@ -20,6 +20,7 @@ export const useGameStore = create((set, get) => ({
     balanceTarotCoins: 0.0,
     energy: 5,
     maxEnergy: 5,
+    nextEnergyTime: null,
     userId: getUserId(),
     inventory: [],
 
@@ -37,6 +38,8 @@ export const useGameStore = create((set, get) => ({
             if (data.energy !== undefined) {
                 set({
                     energy: data.energy,
+                    maxEnergy: data.max_energy || 5,
+                    nextEnergyTime: data.next_energy_time || null,
                     balanceDust: data.balance_dust || 0,
                     balanceFlowers: data.balance_flowers || 0,
                     balanceTarotCoins: data.balance_tarot_coins || 0.0
