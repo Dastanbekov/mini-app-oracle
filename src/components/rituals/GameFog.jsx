@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useGameStore } from '../../store/gameStore';
 import { Eye, X, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import TarotCard from './TarotCard';
+import TarotCard from '../TarotCard';
 
 export default function GameFog() {
     const { playFog, balanceDust } = useGameStore();
@@ -91,26 +91,29 @@ export default function GameFog() {
                 Туман Таро
             </h2>
 
-            <div className="relative w-64 h-96 [perspective:1000px] flex items-center justify-center">
-                <AnimatePresence mode="wait">
-                    {!card ? (
-                        <motion.div
-                            key="fog"
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0, scale: 0.9 }}
-                            className="relative w-full h-full rounded-xl overflow-hidden shadow-2xl border border-white/10 group"
-                        >
-                            {/* Background Hint (Blurred) */}
-                            <div className="absolute inset-0 bg-gradient-to-br from-indigo-900 to-black -z-10 opacity-50 flex items-center justify-center">
-                                <span className="text-6xl opacity-20 filter blur-sm">?</span>
-                            </div>
+            <div className="relative w-[260px] h-[420px] [perspective:1000px] flex items-center justify-center">
+                {/* 1. The Card - Always Rendered */}
+                <TarotCard
+                    cardData={card || { name: 'Unknown', image: '' }}
+                    flipped={!!card} // Flip when card data is present
+                    onFlip={() => { }}
+                    className="absolute inset-0 z-0 shadow-2xl rounded-xl"
+                />
 
+                {/* 2. The Fog Layer (Canvas) */}
+                <AnimatePresence>
+                    {!card && (
+                        <motion.div
+                            key="fog-layer"
+                            initial={{ opacity: 1 }}
+                            exit={{ opacity: 0, transition: { duration: 0.8 } }}
+                            className="absolute inset-0 z-10 rounded-xl overflow-hidden touch-none"
+                        >
                             <canvas
                                 ref={canvasRef}
-                                width={256}
-                                height={384}
-                                className="absolute inset-0 z-10 cursor-crosshair touch-none"
+                                width={260}
+                                height={420}
+                                className="w-full h-full cursor-crosshair"
                                 onMouseDown={() => { if (balanceDust >= 100) setIsScratching(true); }}
                                 onMouseUp={() => setIsScratching(false)}
                                 onMouseMove={handleMouseMove}
@@ -123,29 +126,26 @@ export default function GameFog() {
                             />
 
                             {!isScratching && (
-                                <div className="absolute bottom-4 left-0 right-0 text-center pointer-events-none animate-bounce-slow">
-                                    <p className="text-xs text-blue-200/50 uppercase tracking-widest">Проведи пальцем</p>
+                                <div className="absolute bottom-10 left-0 right-0 text-center pointer-events-none animate-bounce-slow z-20">
+                                    <p className="text-xs text-amber-200/80 uppercase tracking-widest drop-shadow-md">Проведи пальцем</p>
                                 </div>
                             )}
                         </motion.div>
-                    ) : (
-                        <div className="flex items-center justify-center w-full h-full relative">
-                            <TarotCard
-                                cardData={card}
-                                flipped={true}
-                                onFlip={() => { }}
-                                className="scale-90 sm:scale-100"
-                            />
-
-                            <button
-                                onClick={() => { setCard(null); setRevealed(false); }}
-                                className="absolute top-0 right-0 z-50 w-8 h-8 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center text-white/70 hover:bg-black/60 hover:text-white transition-all shadow-lg"
-                            >
-                                <X size={16} />
-                            </button>
-                        </div>
                     )}
                 </AnimatePresence>
+
+                {/* 3. Close Button (Only when revealed) */}
+                {card && (
+                    <motion.button
+                        initial={{ opacity: 0, scale: 0 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: 0.5 }}
+                        onClick={() => { setCard(null); setRevealed(false); setIsScratching(false); }}
+                        className="absolute -top-4 -right-4 z-50 w-10 h-10 rounded-full bg-black/60 backdrop-blur-md flex items-center justify-center text-white/70 hover:bg-[#996515] hover:text-white transition-all shadow-lg border border-[#996515]/30"
+                    >
+                        <X size={20} />
+                    </motion.button>
+                )}
             </div>
 
             {!card && (
