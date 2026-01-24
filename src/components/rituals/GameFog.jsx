@@ -55,7 +55,7 @@ export default function GameFog() {
 
         // 6. "A" Letter - bright gold
         ctx.fillStyle = '#FDD017';
-        ctx.font = 'thin 120px Georgia, serif';
+        ctx.font = '160px Georgia, serif';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.shadowColor = 'rgba(153, 101, 21, 0.5)';
