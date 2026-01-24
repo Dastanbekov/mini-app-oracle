@@ -18,8 +18,11 @@ export default function GameCups({ onNoEnergy }) {
     const [gameState, setGameState] = useState('idle');
     const [result, setResult] = useState(null);
     const [cups, setCups] = useState([0, 1, 2]);
+    const [isProcessing, setIsProcessing] = useState(false);
 
     const handlePlay = async () => {
+        if (gameState !== 'idle' || isProcessing) return; // Block if already playing
+
         if (energy < 1) {
             if (onNoEnergy) onNoEnergy();
             return;
@@ -48,20 +51,32 @@ export default function GameCups({ onNoEnergy }) {
     };
 
     const handlePick = async (index) => {
-        if (gameState !== 'picking') return;
+        if (gameState !== 'picking' || isProcessing) return; // Block double-clicks
+
+        setIsProcessing(true); // Lock immediately
+        setGameState('loading'); // Visual feedback
 
         // Map visual index to backend ID (simplified as 1,2,3)
-        // Since backend logic is simple random, the ID sent matters less than the result logic
         const cupId = cups[index] + 1;
 
-        const data = await playCups(cupId);
-        if (data && !data.error) {
-            setResult(data);
-            setGameState('result');
+        try {
+            const data = await playCups(cupId);
+            if (data && !data.error) {
+                setResult(data);
+                setGameState('result');
 
-            setTimeout(() => {
+                setTimeout(() => {
+                    setGameState('idle');
+                    setIsProcessing(false);
+                }, 4000);
+            } else {
                 setGameState('idle');
-            }, 4000);
+                setIsProcessing(false);
+            }
+        } catch (e) {
+            console.error('Play cups error:', e);
+            setGameState('idle');
+            setIsProcessing(false);
         }
     };
 
@@ -132,8 +147,8 @@ export default function GameCups({ onNoEnergy }) {
                         whileTap={{ scale: 0.95 }}
                         onClick={handlePlay}
                         className={`btn btn-primary border-none shadow-[0_0_20px_rgba(245,158,11,0.4)] text-lg px-8 py-3 rounded-full flex items-center gap-2 ${energy < 1
-                                ? 'bg-gradient-to-r from-gray-600 to-gray-700 opacity-80'
-                                : 'bg-gradient-to-r from-amber-600 to-amber-800'
+                            ? 'bg-gradient-to-r from-gray-600 to-gray-700 opacity-80'
+                            : 'bg-gradient-to-r from-amber-600 to-amber-800'
                             }`}
                     >
                         <Sparkles size={20} /> Играть (-1 ⚡)
