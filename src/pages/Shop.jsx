@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { useGameStore } from '../store/gameStore';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShoppingBag, Zap, Gem, ArrowLeft, Loader2, RefreshCw, Coins } from 'lucide-react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { ShoppingBag, Zap, Gem, ArrowLeft, Loader2, RefreshCw, Coins, Info } from 'lucide-react';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
+import TaroCoinImage from '../assets/taro_coin.png';
 
 const PRODUCTS = [
     {
@@ -21,7 +22,7 @@ const PRODUCTS = [
         price: '29 ₽',
         icon: Gem,
         color: 'from-amber-400 to-orange-500',
-        reward: '100 ✨'
+        reward: '100 🌸'
     },
     {
         id: 'dust_pack_500',
@@ -30,7 +31,7 @@ const PRODUCTS = [
         price: '99 ₽',
         icon: Gem,
         color: 'from-purple-500 to-pink-500',
-        reward: '500 ✨'
+        reward: '500 🌸'
     },
     {
         id: 'dust_pack_1500',
@@ -39,8 +40,15 @@ const PRODUCTS = [
         price: '199 ₽',
         icon: Gem,
         color: 'from-emerald-400 to-green-600',
-        reward: '1800 ✨'
+        reward: '1800 🌸'
     }
+];
+
+// Services that can be bought with Taro Coin
+const SERVICES = [
+    { name: 'Консультация Таролога', price: 5, description: 'Личная консультация 30 мин' },
+    { name: 'Расклад на Любовь', price: 3, description: 'Подробный расклад на отношения' },
+    { name: 'Расклад на Карьеру', price: 3, description: 'Прогноз на профессиональную сферу' },
 ];
 
 export default function Shop() {
@@ -188,7 +196,7 @@ export default function Shop() {
                                     <h2 className="text-3xl font-display font-bold text-pink-400">{balanceFlowers} 🌸</h2>
                                 </div>
                                 <div className="text-right">
-                                    <p className="text-gray-400 text-xs uppercase tracking-widest">Таро Коины</p>
+                                    <p className="text-gray-400 text-xs uppercase tracking-widest">Taro Coin</p>
                                     <h2 className="text-3xl font-display font-bold text-yellow-400">{balanceTarotCoins?.toFixed(2)} TC</h2>
                                 </div>
                             </div>
@@ -227,26 +235,42 @@ export default function Shop() {
                                     className="w-full py-4 rounded-xl bg-gradient-to-r from-amber-600 to-yellow-600 text-white font-bold text-lg shadow-lg shadow-amber-900/40 hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center gap-2"
                                 >
                                     {exchangeLoading ? <Loader2 className="animate-spin" /> : <RefreshCw />}
-                                    Обменять
+                                    Обменять на Taro Coin
                                 </button>
                             </div>
                         </div>
 
-                        {/* Tarot Coin Info */}
-                        <div className="glass-card p-4 rounded-2xl border border-yellow-500/20 bg-yellow-900/10">
-                            <div className="flex items-start gap-4">
-                                <div className="p-3 bg-yellow-500/20 rounded-full text-yellow-400">
-                                    <Coins size={24} />
-                                </div>
-                                <div>
-                                    <h3 className="font-bold text-yellow-200 text-lg mb-1">Tarot Coin (TC)</h3>
-                                    <p className="text-sm text-yellow-100/70 leading-relaxed">
-                                        Это премиальная валюта, которая в будущем выйдет на биржу (Listing).
-                                        Сейчас вы можете копить её или обменивать на индивидуальные расклады и консультации таролога.
-                                    </p>
-                                </div>
+                        {/* Services Pricing */}
+                        <div className="glass-card p-4 rounded-2xl border border-purple-500/20">
+                            <h3 className="font-bold text-purple-200 text-lg mb-4 flex items-center gap-2">
+                                <Coins size={20} className="text-purple-400" />
+                                Услуги за Taro Coin
+                            </h3>
+                            <div className="space-y-3">
+                                {SERVICES.map((service, idx) => (
+                                    <div key={idx} className="flex justify-between items-center p-3 bg-white/5 rounded-lg">
+                                        <div>
+                                            <p className="font-medium text-white">{service.name}</p>
+                                            <p className="text-xs text-gray-400">{service.description}</p>
+                                        </div>
+                                        <span className="font-bold text-yellow-400">{service.price} TC</span>
+                                    </div>
+                                ))}
                             </div>
+                            <p className="text-xs text-center text-gray-500 mt-4">Для заказа услуги свяжитесь с @AzaleaOracle</p>
                         </div>
+
+                        {/* Taro Coin Info Link */}
+                        <Link to="/taro-coin" className="glass-card p-4 rounded-2xl border border-yellow-500/20 bg-yellow-900/10 flex items-center gap-4 hover:bg-yellow-900/20 transition-colors">
+                            <img src={TaroCoinImage} alt="Taro Coin" className="w-16 h-16 object-contain" />
+                            <div className="flex-1">
+                                <h3 className="font-bold text-yellow-200 text-lg mb-1">Azalea Oracle Taro Coin</h3>
+                                <p className="text-sm text-yellow-100/70">
+                                    Узнай больше о монете и её будущем листинге →
+                                </p>
+                            </div>
+                            <Info size={20} className="text-yellow-400" />
+                        </Link>
                     </motion.div>
                 )}
             </AnimatePresence>
