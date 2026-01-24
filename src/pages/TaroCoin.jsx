@@ -115,8 +115,8 @@ export default function TaroCoin() {
                         <div>
                             <h3 className="font-bold text-white mb-1">Листинг на бирже</h3>
                             <p className="text-sm text-gray-400 leading-relaxed">
-                                Мы планируем листинг Taro Coin на криптобирже в ближайшем будущем.
-                                Копите монеты сейчас, чтобы быть готовыми к торгам!
+                                Копите монеты сейчас, чтобы обменять их на реальные деньги!
+                                Листинг Taro Coin на криптобирже скоро.
                             </p>
                             <div className="mt-2 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-500/10 border border-green-500/20">
                                 <span className="text-green-400 text-xs font-medium">Скоро</span>

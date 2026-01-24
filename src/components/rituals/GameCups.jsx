@@ -13,14 +13,17 @@ const CupIcon = ({ className }) => (
     </svg>
 );
 
-export default function GameCups() {
+export default function GameCups({ onNoEnergy }) {
     const { playCups, balanceDust, energy } = useGameStore();
     const [gameState, setGameState] = useState('idle');
     const [result, setResult] = useState(null);
     const [cups, setCups] = useState([0, 1, 2]);
 
     const handlePlay = async () => {
-        if (energy < 1) return;
+        if (energy < 1) {
+            if (onNoEnergy) onNoEnergy();
+            return;
+        }
         setGameState('shuffling');
         setResult(null);
 

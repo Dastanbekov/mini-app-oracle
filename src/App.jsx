@@ -9,6 +9,7 @@ import HumanDesign from './pages/HumanDesign';
 import Achievements from './pages/Achievements';
 import Shop from './pages/Shop';
 import TaroCoin from './pages/TaroCoin';
+import Profile from './pages/Profile';
 
 function App() {
   return (
@@ -23,6 +24,7 @@ function App() {
         <Route path="numerology" element={<Numerology />} />
         <Route path="human-design" element={<HumanDesign />} />
         <Route path="taro-coin" element={<TaroCoin />} />
+        <Route path="profile" element={<Profile />} />
       </Route>
     </Routes>
   );

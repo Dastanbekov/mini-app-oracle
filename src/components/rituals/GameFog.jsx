@@ -4,8 +4,8 @@ import { X, Sparkles, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import TarotCard from '../TarotCard';
 
-export default function GameFog() {
-    const { playFog, balanceDust } = useGameStore();
+export default function GameFog({ onNoEnergy }) {
+    const { playFog, balanceDust, energy } = useGameStore();
     const [card, setCard] = useState(null);
     const canvasRef = useRef(null);
     const [isScratching, setIsScratching] = useState(false);
@@ -108,6 +108,10 @@ export default function GameFog() {
     }, [card, revealed]);
 
     const handleStart = async () => {
+        if (energy < 1) {
+            if (onNoEnergy) onNoEnergy();
+            return;
+        }
         if (balanceDust < 100) return;
         setLoading(true);
         const data = await playFog();
@@ -277,7 +281,7 @@ export default function GameFog() {
                     <motion.button
                         initial={{ opacity: 0, scale: 0 }}
                         animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: 0.5 }}
+                        transition={{ delay: 1.2 }}
                         onClick={() => { setCard(null); setRevealed(false); setProgress(0); }}
                         className="absolute -bottom-16 z-50 px-6 py-2 rounded-full bg-white/10 border border-white/20 text-white hover:bg-white/20 transition-all flex items-center gap-2"
                     >
@@ -297,6 +301,93 @@ export default function GameFog() {
                     />
                 </div>
             )}
+
+            {/* Revealed Card Description Panel */}
+            <AnimatePresence>
+                {revealed && card && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 30 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 30 }}
+                        transition={{ delay: 0.5, duration: 0.5 }}
+                        className="w-full max-w-sm glass-card p-6 rounded-2xl border border-purple-500/30 relative overflow-hidden"
+                    >
+                        {/* Sparkle particles */}
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: 0.7 }}
+                            className="absolute inset-0 pointer-events-none"
+                        >
+                            {[...Array(6)].map((_, i) => (
+                                <motion.div
+                                    key={i}
+                                    className="absolute text-yellow-400"
+                                    initial={{
+                                        opacity: 0,
+                                        scale: 0,
+                                        x: `${20 + i * 15}%`,
+                                        y: `${10 + (i % 3) * 30}%`
+                                    }}
+                                    animate={{
+                                        opacity: [0, 1, 0],
+                                        scale: [0, 1, 0],
+                                        y: [`${10 + (i % 3) * 30}%`, `${-10 + (i % 3) * 20}%`]
+                                    }}
+                                    transition={{
+                                        delay: 0.8 + i * 0.1,
+                                        duration: 1.5,
+                                        repeat: Infinity,
+                                        repeatDelay: 2
+                                    }}
+                                >
+                                    <Sparkles size={16} />
+                                </motion.div>
+                            ))}
+                        </motion.div>
+
+                        {/* Glow effect */}
+                        <div className="absolute inset-0 bg-gradient-to-b from-purple-500/10 via-transparent to-blue-500/10 pointer-events-none" />
+
+                        {/* Content */}
+                        <div className="relative z-10 text-center">
+                            <motion.p
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.6 }}
+                                className="text-xs text-purple-400 uppercase tracking-widest mb-2"
+                            >
+                                Вам выпала карта
+                            </motion.p>
+
+                            <motion.h3
+                                initial={{ opacity: 0, scale: 0.8 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                transition={{ delay: 0.7, type: "spring", stiffness: 200 }}
+                                className="text-2xl font-display font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-amber-400 to-yellow-300 mb-4"
+                            >
+                                {card.name}
+                            </motion.h3>
+
+                            <motion.div
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                transition={{ delay: 0.9 }}
+                                className="w-16 h-0.5 bg-gradient-to-r from-transparent via-purple-500 to-transparent mx-auto mb-4"
+                            />
+
+                            <motion.p
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 1 }}
+                                className="text-sm text-gray-300 leading-relaxed"
+                            >
+                                {card.desc}
+                            </motion.p>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }

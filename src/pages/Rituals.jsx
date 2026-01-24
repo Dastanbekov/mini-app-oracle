@@ -6,10 +6,12 @@ import { Link } from 'react-router-dom';
 import GameCups from '../components/rituals/GameCups';
 import GameFog from '../components/rituals/GameFog';
 import TaroCoinIcon from '../assets/taro_coin.png';
+import NoEnergyModal from '../components/NoEnergyModal';
 
 export default function Rituals() {
     const { balanceDust, balanceFlowers, balanceTarotCoins, energy, maxEnergy, syncUser } = useGameStore();
     const [activeTab, setActiveTab] = useState('cups');
+    const [showNoEnergy, setShowNoEnergy] = useState(false);
 
     useEffect(() => {
         syncUser();
@@ -17,6 +19,10 @@ export default function Rituals() {
         const interval = setInterval(syncUser, 60000);
         return () => clearInterval(interval);
     }, []);
+
+    const handleNoEnergy = () => {
+        setShowNoEnergy(true);
+    };
 
     return (
         <div className="flex flex-col items-center min-h-[80vh] gap-6 pb-20">
@@ -49,22 +55,22 @@ export default function Rituals() {
                                 <Link to="/shop" className="w-4 h-4 rounded-full bg-white/10 flex items-center justify-center text-white/50 hover:bg-accent hover:text-white transition-colors">
                                     <Plus size={10} />
                                 </Link>
-                                <h2 className="text-lg font-bold font-display text-accent">{energy}/{maxEnergy}</h2>
+                                <h2 className="text-lg font-bold font-display text-white">{energy} / {maxEnergy}</h2>
                             </div>
                         </div>
-                        <div className="w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center text-accent">
+                        <div className="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center text-green-400">
                             <Zap size={16} />
                         </div>
                     </div>
 
                     {/* Bottom Left: Flowers */}
                     <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-full bg-pink-500/20 flex items-center justify-center text-pink-500">
+                        <div className="w-8 h-8 rounded-full bg-pink-500/20 flex items-center justify-center text-pink-400">
                             <Flower2 size={16} />
                         </div>
                         <div>
                             <p className="text-[10px] text-gray-400 uppercase tracking-widest leading-none">Цветы</p>
-                            <h2 className="text-lg font-bold font-display text-white">{balanceFlowers || 0}</h2>
+                            <h2 className="text-lg font-bold font-display text-pink-400">{balanceFlowers || 0}</h2>
                         </div>
                     </div>
 
@@ -113,10 +119,13 @@ export default function Rituals() {
                         transition={{ duration: 0.3 }}
                         className="w-full"
                     >
-                        {activeTab === 'cups' ? <GameCups /> : <GameFog />}
+                        {activeTab === 'cups' ? <GameCups onNoEnergy={handleNoEnergy} /> : <GameFog onNoEnergy={handleNoEnergy} />}
                     </motion.div>
                 </AnimatePresence>
             </div>
+
+            {/* No Energy Modal */}
+            <NoEnergyModal isOpen={showNoEnergy} onClose={() => setShowNoEnergy(false)} />
         </div>
     );
 }
