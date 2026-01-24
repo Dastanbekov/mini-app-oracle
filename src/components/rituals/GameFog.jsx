@@ -4,8 +4,8 @@ import { X, Sparkles, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import TarotCard from '../TarotCard';
 
-export default function GameFog({ onNoEnergy }) {
-    const { playFog, balanceDust, energy } = useGameStore();
+export default function GameFog() {
+    const { playFog, balanceDust } = useGameStore();
     const [card, setCard] = useState(null);
     const canvasRef = useRef(null);
     const [isScratching, setIsScratching] = useState(false);
@@ -108,10 +108,6 @@ export default function GameFog({ onNoEnergy }) {
     }, [card, revealed]);
 
     const handleStart = async () => {
-        if (energy < 1) {
-            if (onNoEnergy) onNoEnergy();
-            return;
-        }
         if (balanceDust < 100) return;
         setLoading(true);
         const data = await playFog();
