@@ -200,14 +200,56 @@ export default function GameFog({ onNoEnergy }) {
             <div className="relative w-[260px] h-[420px] rounded-xl flex items-center justify-center">
                 {/* 1. The Result Card (Hidden underneath) */}
                 {card && (
-                    <div className="absolute inset-0 z-0">
+                    <motion.div
+                        className="absolute inset-0 z-0"
+                        initial={{ scale: 1 }}
+                        animate={revealed ? {
+                            scale: [1, 1.03, 1],
+                            filter: ['drop-shadow(0 0 0px gold)', 'drop-shadow(0 0 20px gold)', 'drop-shadow(0 0 10px rgba(255,215,0,0.5))']
+                        } : {}}
+                        transition={{ duration: 0.8, ease: "easeOut" }}
+                    >
                         <TarotCard
                             cardData={card}
                             flipped={true}
                             onFlip={() => { }}
                             className="w-full h-full shadow-2xl rounded-xl"
                         />
-                    </div>
+
+                        {/* Sparkle overlay when revealed */}
+                        {revealed && (
+                            <motion.div
+                                className="absolute inset-0 pointer-events-none overflow-hidden rounded-xl"
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                            >
+                                {[...Array(8)].map((_, i) => (
+                                    <motion.div
+                                        key={i}
+                                        className="absolute text-yellow-300"
+                                        style={{
+                                            left: `${10 + (i % 4) * 25}%`,
+                                            top: `${15 + Math.floor(i / 4) * 60}%`
+                                        }}
+                                        initial={{ opacity: 0, scale: 0, rotate: 0 }}
+                                        animate={{
+                                            opacity: [0, 1, 0],
+                                            scale: [0, 1.5, 0],
+                                            rotate: [0, 180, 360]
+                                        }}
+                                        transition={{
+                                            delay: 0.1 + i * 0.1,
+                                            duration: 1.2,
+                                            repeat: 2,
+                                            repeatDelay: 0.5
+                                        }}
+                                    >
+                                        ✨
+                                    </motion.div>
+                                ))}
+                            </motion.div>
+                        )}
+                    </motion.div>
                 )}
 
                 {/* 2. The Scratch Layer (Canvas with golden card drawn on it) */}
