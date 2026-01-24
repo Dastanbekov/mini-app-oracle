@@ -7,6 +7,7 @@ import Astrology from './pages/Astrology';
 import Numerology from './pages/Numerology';
 import HumanDesign from './pages/HumanDesign';
 import Achievements from './pages/Achievements';
+import Shop from './pages/Shop';
 
 function App() {
   return (
@@ -14,6 +15,7 @@ function App() {
       <Route path="/" element={<Layout />}>
         <Route index element={<Rituals />} />
         <Route path="collection" element={<Collection />} />
+        <Route path="shop" element={<Shop />} />
         <Route path="knowledge" element={<KnowledgeBase />} />
         <Route path="achievements" element={<Achievements />} />
         <Route path="astrology" element={<Astrology />} />
@@ -25,4 +27,5 @@ function App() {
 }
 
 export default App;
+
 

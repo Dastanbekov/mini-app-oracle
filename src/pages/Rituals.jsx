@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useGameStore } from '../store/gameStore';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Dna, Coins, Zap } from 'lucide-react';
+import { Dna, Coins, Zap, Plus } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import GameCups from '../components/rituals/GameCups';
 import GameFog from '../components/rituals/GameFog';
 
@@ -19,21 +20,33 @@ export default function Rituals() {
     return (
         <div className="flex flex-col items-center min-h-[80vh] gap-6 pb-20">
             {/* Header Stats */}
-            <div className="w-full glass-card rounded-2xl p-4 flex items-center justify-between">
-                <div className="flex items-center gap-2">
+            <div className="w-full glass-card rounded-2xl p-4 flex items-center justify-between relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-r from-amber-500/5 to-accent/5" />
+
+                <div className="flex items-center gap-2 relative z-10">
                     <div className="w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center text-amber-500">
                         <Dna size={20} />
                     </div>
                     <div>
                         <p className="text-[10px] text-gray-400 uppercase tracking-widest">Пыль</p>
-                        <h2 className="text-xl font-bold font-display text-white">{balanceDust}</h2>
+                        <div className="flex items-center gap-2">
+                            <h2 className="text-xl font-bold font-display text-white">{balanceDust}</h2>
+                            <Link to="/shop" className="w-5 h-5 rounded-full bg-white/10 flex items-center justify-center text-white/50 hover:bg-primary hover:text-white transition-colors">
+                                <Plus size={12} />
+                            </Link>
+                        </div>
                     </div>
                 </div>
 
-                <div className="flex items-center gap-2 text-right">
-                    <div>
+                <div className="flex items-center gap-2 text-right relative z-10">
+                    <div className="flex flex-col items-end">
                         <p className="text-[10px] text-gray-400 uppercase tracking-widest">Энергия</p>
-                        <h2 className="text-xl font-bold font-display text-accent">{energy}/{maxEnergy}</h2>
+                        <div className="flex items-center gap-2">
+                            <Link to="/shop" className="w-5 h-5 rounded-full bg-white/10 flex items-center justify-center text-white/50 hover:bg-accent hover:text-white transition-colors">
+                                <Plus size={12} />
+                            </Link>
+                            <h2 className="text-xl font-bold font-display text-accent">{energy}/{maxEnergy}</h2>
+                        </div>
                     </div>
                     <div className="w-10 h-10 rounded-full bg-accent/20 flex items-center justify-center text-accent">
                         <Zap size={20} />
