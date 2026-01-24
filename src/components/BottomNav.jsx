@@ -10,7 +10,7 @@ export default function BottomNav() {
         { name: "Ритуалы", path: "/", icon: Sparkles },
         { name: "Коллекция", path: "/collection", icon: Layers },
         { name: "Достижения", path: "/achievements", icon: Trophy },
-        { name: "Знания", path: "/knowledge", icon: BookOpen },
+        { name: "Меню", path: "/knowledge", icon: BookOpen },
         { name: "Профиль", path: "/profile", icon: User },
     ];
 

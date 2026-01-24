@@ -6,14 +6,14 @@ export default function KnowledgeBase() {
         { name: "Астрология", path: "/astrology", icon: MoonStar, color: "text-purple-400", bg: "bg-purple-500/10", desc: "Звёздный прогноз" },
         { name: "Матрица Судьбы", path: "/numerology", icon: Grid, color: "text-pink-400", bg: "bg-pink-500/10", desc: "22 Аркана Таро" },
         { name: "Human Design", path: "/human-design", icon: UserSearch, color: "text-blue-400", bg: "bg-blue-500/10", desc: "Дизайн Человека" },
-        { name: "Taro Coin", path: "/taro-coin", icon: Coins, color: "text-yellow-400", bg: "bg-yellow-500/10", desc: "Криптовалюта и обмен" },
+        { name: "Taro Coin - Азалия Оракул", path: "/taro-coin", icon: Coins, color: "text-yellow-400", bg: "bg-yellow-500/10", desc: "Криптовалюта и обмен" },
     ];
 
     return (
         <div className="flex flex-col gap-6 pb-20 relative">
             <header>
                 <h1 className="text-3xl font-display font-bold text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent">
-                    База Знаний
+                    Меню
                 </h1>
                 <p className="text-sm text-gray-400">Изучи себя и мир вокруг.</p>
             </header>
